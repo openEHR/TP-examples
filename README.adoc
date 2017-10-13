@@ -1,0 +1,4 @@
+= Task Planning project - examples and test cases
+
+This repository contains examples and test cases for the Task Planning specification and tools.
+
