@@ -63,6 +63,17 @@ Then user shold be notified <ORANGE>
 ----
 
 
+== BPMN/CMMN modelling 
+
+WARNING: TODO document the images
+
+image::stroke_management_repeat_version.v1.0.0.png[]
+
+image::stroke_management_naive_version.v1.0.0.png[]
+
+image::stroke_management_naive_version.v2.0.0.png[]
+
+
 == Description of the tests
 In the following you will find some more info about the different tests/scores. 
 
