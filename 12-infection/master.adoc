@@ -38,7 +38,6 @@ The following chapter gives some examples on how to model the process using BPMN
 
 === Overview 
 
-
 .Case management overview
 image::infection_monitoring_overview_cmmn.png[]
 
@@ -77,6 +76,7 @@ Some patients will not do what was expected. For some reasons they will not retu
 
 . Notify patient by SMS if the self-assessment data has not arrived within `n` days 
 . Call patient if no self-assessment data has arrived within `n+m` days. 
+
 
 .Follow up after 30/365 days
 image::infection_monitoring_followup_after_n_days_v1.1.0.png[]
