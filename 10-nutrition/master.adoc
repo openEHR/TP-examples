@@ -31,6 +31,12 @@ And as a result of these there will be the following items:
 .Nutritional screening as flow diagram. Redrawn and extended from <<HDirNutrition>>
 image::NutritionRiskScreening_Drawing.png[]
 
+== BPMN/CMMN modelling 
+
+WARNING: TODO document the images
+
+image::nutrition_risk_screening_v1.png[]
+
 === Computable definition 
 
 In the following we will try to express this steps/protocol in a computable way. First by setting up the _acceptance criteria_ for the user story.

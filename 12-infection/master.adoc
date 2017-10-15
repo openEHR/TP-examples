@@ -1,3 +1,5 @@
+:imagesdir: images 
+
 = Follow up after surgery 
 
 == Background
@@ -24,12 +26,60 @@ If the patient is included in the study the following registrations should be pe
 |==== 
 |Step | When | Who | What
 | 1 | After surgery | Surgeon | Details about the procedyre 
-| 2 | At discharge | Surgeon | State at discharge 
+| 2 | At discharge | Discharing doctor | State at discharge 
 | 3 | 30 days after discharge | Patient | Questionare to identify infection 
 | 4 | 1 year after discharge | Patient | Questoinare to identify infection 
 |==== 
 
 NOTE: Only hip replacement should be followed up after one year. 
+
+== BPMN/CMMN models for infection monitoring 
+The following chapter gives some examples on how to model the process using BPMN and CMMN notations. 
+
+=== Overview 
+
+
+.Case management overview
+image::infection_monitoring_overview_cmmn.png[]
+
+.Overview of the infection monitoring process 
+image::infection_monitoring_overview.png[]
+
+=== Initialization 
+
+.Initialization of the process 
+image::infection_monitoring_init_process.png[]
+
+=== Assessment after surgery 
+Given a procedure that should be monitored for infection is performed, then there is a few assessments that the surgeon should do. Most of these details would be mostly covered by the post-operative documentation. Some elements are mandatory for "infection_procedures" but optional for others. Hence we need some way to verify/validate that the entered data is valid for the infection monitoring process. 
+
+NOTE: This validation part is not covered in the model so far. We just assume that the correct data is added as part of the surgery report. 
+
+=== Assessment at discharge 
+At discharge the patient must be assessed for infection status. The start_event is "start_discharge". When the discharge process is started then the discharging doctor must check if the patient has any signs/symptoms for infection. The data is added to the EHR in an "infection monitoring at discharge" composition. 
+
+
+.Assessment at discharge
+image::infection_monitoring_assessment_at_discharge.png[]
+
+=== Self-asessement after 30/365 days 
+After discharge the patient should do self-assessment after 30 and 365 footnote:[Only a few proceudres should do 365 days] days. It is the healthcare provider which performed the surgery that initiate the process. 
+
+Self-assessment might be documented either on paper or electronically in a patient porta. The process defined in the following is to support the paper workflow since this is what is used in Norway today. 
+
+. Day 25: Send self-assessment form to patient 
+. Day 30: Patient does self-assessment 
+. Day 35: Hospital receives self-assessment form
+.. Scan the paper form 
+.. Enter data into an openEHR form/composition 
+
+Some patients will not do what was expected. For some reasons they will not return the self-assement data. The hospital need some leek routines to handle this. The model below defines a possible way to handle this. 
+
+. Notify patient by SMS if the self-assessment data has not arrived within `n` days 
+. Call patient if no self-assessment data has arrived within `n+m` days. 
+
+.Follow up after 30/365 days
+image::infection_monitoring_followup_after_n_days_v1.1.0.png[]
 
 == openEHR Taskplan for this use-case
 The protocol used to collect the required data is a good example on what to use openEHR Taskplan for. In the following we will lay out some considerations and propose a structure for the _TASK_PLAN_
