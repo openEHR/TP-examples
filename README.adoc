@@ -2,47 +2,12 @@
 
 This repository contains examples and test cases for the Task Planning specification and tools.
 
+== Examples 
 
-== Queue management
+* 10 - Nutrition risk management
+* 11 - Intensive care unit 
+* 12 - Infection monitoring after surgery
+* 13 - Stroke management at ward 
 
-A queue is a set of tasks to be performed. Each task is a _TASK_ type _PERFORMABLE_TASK_. For a patient, tasks are assembled in _TASK_PLAN_ and _WORK_PLAN_. _TASK_PLAN_ defines the relationship between _TASKs_ to be performed. The perspective of _TASK_PLAN_ is a patient and a responsible healthcare practitioner.
-
-_WORK_PLAN_ is the assembly of several _TASK_PLANs_ to achieve a specific goal for the subject of care. From the patient's perspective, _WORK_PLAN_ will define the entire queue. 
-
-[source, sql]
-----
-SELECT t 
-FROM EHR e [uid=$ehrUid]
-CONTAINS WORK_PLAN w CONTAINS TASK_PLAN tp CONTAINS TASK t 
-WHERE t.is_activated() // <1>
-ORDER BY t.execution_time ASC 
-----
-<1> How to query for only activated tasks
-
-The queue seen from a healthcare provider is a query of all _TASK_ who has specified current healthcare provider as the principal performer. Below is a pseudo AQL for this query: 
-
-[source,sql]
-----
-SELECT t from TASK t 
-WHERE t.principal_performer = $current_user <1>  
-ORDER BY t.excecution_time DESC <2>
-----
-<1> $current_user is a variable defining the roles of the user having the session with task planning engine
-<2> How to order tasks across _TASK_PLANs_. This AQL will not work since _execution_time_ is optional. 
-
-=== Challenges 
-
-[qanda]
-How do we query "open" tasks? :: 
-A common use case would be to query all "open" tasks. The current state of a task group is NOT defined on the task. This is delegated to the materialized view. How do we then query for open tasks? 
-
-How do we ORDER tasks ? :: 
-The use-case is to query the next tasks from multiples task plans and order them in the correct sequence. Time would be a candidate, but since _execution_time_ is optional it would not work for all tasks. How do we solve this? 
-
-How do we define the next _TASK_ to be executed by the healthcare provider?:: 
-_Task plan_ defines the relationships between tasks and has formal rules for when a task is activated. What happens when dozens of tasks divided into several patients are activated? Then the healthcare provider must prioritize. The rules for prioritizing is not defined in task planning.
-
-
-
-=== Summary
-In real life both the subject of care and the healthcare providers will navigate through a _queue_ of tasks from different _task plans_. A physician at the outpatient clinic must constantly switch between patients to improve the flow in the queue. The subject of care will "walk through" the hospital to perform laboratory tests, X-ray, physiotherapy, appointment with doctor and eventually financial settlement. Queue management is about offering an overview of all available tasks. From the overview it must be possible to uncover bottlenecks and to adjust on the plan so that the health service is performed as efficiently as possible.
+== Issues 
+The issues.adoc contains some issues, questions and topics to be discussed.
