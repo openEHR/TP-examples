@@ -2,5 +2,12 @@
 
 This repository contains examples and test cases for the Task Planning specification and tools.
 
+== Examples 
 
+* 10 - Nutrition risk management
+* 11 - Intensive care unit 
+* 12 - Infection monitoring after surgery
+* 13 - Stroke management at ward 
 
+== Issues 
+The issues.adoc contains some issues, questions and topics to be discussed.

@@ -1,0 +1,384 @@
+[{
+        "_type": "WORK_PLAN",
+        "name": {
+            "value": "Follow up stroke on ward"
+        },
+        "description": "This workplan is the total plan for the subject of care at a ward. The example is laid out to demonstrate how to model the screening when a stroke is involved",
+        "calendar": {
+            "_comment": "http://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_plan_calendar_class",
+            "entries": []
+        },
+        "timeline": {
+            "_comment": "http://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_plan_timeline_class",
+            "planned_items": [],
+            "timers": []
+        },
+        "plans": [{
+            "value": "STROKE_FOLLOW_UP"
+        }]
+    },
+    {
+        "_type": "TASK_PLAN",
+        "uid": {
+            "value": "STROKE_FOLLOW_UP"
+        },
+        "name": {
+            "value": "Screening and measurements"
+        },
+        "description": "Definition of the screening/measurements tasks to be performed during a stay at a ward with a suspected stroke",
+        "best_practice_ref": {
+            "_type": "DV_URI",
+            "value": "https://github.com/bjornna/TP-examples/blob/master/13-stroke/master.adoc"
+        },
+        "principal_performer": "Nurse_on_duty",
+        "definition": {
+            "_type": "TASK_GROUP",
+            "uid": {
+                "value": "STROKE_FOLLOW_UP"
+            },
+            "execution_type": "parallel",
+            "members": [{
+                    "_type": "TASK_GROUP",
+                    "name": "Admissions day tasks",
+                    "description": "Screening tasks to be performed on the day of admission",
+                    "uid": {
+                        "value": "Admission days tasks"
+                    },
+                    "members": [{
+                            "_type": "PERFORMABLE_TASK",
+                            "name": "mRS at admission",
+                            "description": "Visit patient at bed at perform mRS",
+                            "action": {
+                                "_type": "PERFORMABLE_ACTION",
+                                "subject_preconditions": [{
+                                    "_type": "SUBJECT_PRECONDITION",
+                                    "description": "Condition which must be met for the Task Action to be available to perform in a runtime execution context.",
+                                    "expression": {
+                                        "_type": "BOOLEAN_CONTEXT_EXPRESSION",
+                                        "expression": "<some expression expressed in openEHR expression syntax>"
+                                    }
+                                }]
+                            },
+                            "capture_dataset": [{
+                                "_type": "DATASET_SPEC",
+                                "form_id": "MRS_Screening_First_Day.v1.0.0",
+                                "template_id": "MRS_Screening.v1",
+                                "_comment": "Associated data-set template and/or form via which data to be captured during this Task will actually be entered."
+                            }]
+                        },
+                        {
+                            "_type": "PERFORMABLE_TASK",
+                            "name": "Swallow test",
+                            "description": "http://www.helsebiblioteket.no/retningslinjer/hjerneslag/vedlegg/tester/test-svelgefunksjon;jsessionid=92E904D8FA0136BE20F8791DC4C6101E?tabkey=5",
+                            "action": {
+                                "_type": "PERFORMABLE_ACTION",
+                                "resources": [{
+                                        "_type": "RESOURCE_PARTICIPATION",
+                                        "resource_type": {
+                                            "_type": "DV_TEXT",
+                                            "value": "Teskje av stål (Spoon)"
+                                        }
+                                    },
+                                    {
+                                        "_type": "RESOURCE_PARTICIPATION",
+                                        "resource_type": {
+                                            "_type": "DV_TEXT",
+                                            "value": "Glass iskaldt vann"
+                                        }
+                                    }
+                                ]
+                            },
+                            "capture_dataset": [{
+                                "_type": "DATASET_SPEC",
+                                "form_id": "Swallow_Test_Screening.v1.2.5",
+                                "template_id": "Swallow_Test_Norway.v1"
+                            }]
+                        }
+                    ]
+                },
+                {
+                    "name": "Day 1 tasks",
+                    "_type": "TASK_GROUP",
+                    "uid": {
+                        "value": "TG_Day1_Tasks"
+                    },
+                    "members": [{
+
+                            "_type": "PERFORMABLE_TASK",
+                            "name": "NIHSS",
+                            "action": {
+                                "_type": "DEFINED_ACTION",
+                                "optionality": "mandatory"
+                            },
+                            "capture_dataset": [{
+                                "_type": "DATASET_SPEC",
+                                "form_id": "NIHSS.Score.v1.0.0",
+                                "template_id": "NIHSS.Score"
+                            }]
+                        },
+                        {
+                            "_type": "PERFORMABLE_TASK",
+                            "name": "Barthel",
+                            "action": {
+                                "_type": "DEFINED_ACTION",
+                                "optionality": "mandatory"
+                            },
+                            "capture_dataset": [{
+                                "_type": "DATASET_SPEC",
+                                "form_id": "Barthel.Score.v1.0.0",
+                                "template_id": "BartheScore"
+                            }]
+                        }
+                    ],
+                    "wait_spec": {
+                        "_type": "TASK_WAIT",
+                        "events": [{
+                            "_type": "TIMELINE_MOMENT",
+                            "timeline_offset": "P1D",
+                            "_comment": "This task group should be activated after one day",
+                            "fixed_time": {
+                                "_type": "CLOCK_TIME",
+                                "time": "08:00",
+                                "_comment": "Should be activated on nursing day"
+                            }
+                        }],
+                        "event_relation": "after"
+                    }
+                },
+                {
+                    "name": "Day 2 tasks",
+                    "_type": "TASK_GROUP",
+                    "uid": {
+                        "value": "TG_Day2_Tasks"
+                    },
+                    "members": [{
+                        "_type": "PERFORMABLE_TASK",
+                        "name": "NIHSS",
+                        "action": {
+                            "_type": "DEFINED_ACTION",
+                            "optionality": "mandatory"
+                        },
+                        "capture_dataset": [{
+                            "_type": "DATASET_SPEC",
+                            "form_id": "NIHSS.Score.v1.0.0",
+                            "template_id": "NIHSS.Score"
+                        }]
+
+                    }],
+                    "wait_spec": {
+                        "_type": "TASK_WAIT",
+                        "events": [{
+                            "_type": "TIMELINE_MOMENT",
+                            "timeline_offset": "P2D",
+                            "_comment": "This task group should be activated after one day",
+                            "fixed_time": {
+                                "_type": "CLOCK_TIME",
+                                "time": "08:00",
+                                "_comment": "Should be activated on nursing day"
+                            }
+                        }],
+                        "event_relation": "after"
+                    }
+                },
+                {
+                    "name": "Day 3 tasks",
+                    "_type": "TASK_GROUP",
+                    "uid": {
+                        "value": "TG_Day3_Tasks"
+                    },
+                    "members": [{
+
+                            "_type": "PERFORMABLE_TASK",
+                            "name": "NIHSS",
+                            "action": {
+                                "_type": "DEFINED_ACTION",
+                                "optionality": "mandatory"
+                            },
+                            "capture_dataset": [{
+                                "_type": "DATASET_SPEC",
+                                "form_id": "NIHSS.Score.v1.0.0",
+                                "template_id": "NIHSS.Score"
+                            }]
+                        },
+                        {
+
+                            "_type": "PERFORMABLE_TASK",
+                            "name": "Barthel",
+                            "action": {
+                                "_type": "DEFINED_ACTION",
+                                "optionality": "mandatory"
+                            },
+                            "capture_dataset": [{
+                                "_type": "DATASET_SPEC",
+                                "form_id": "Barthel.Score.v1.0.0",
+                                "template_id": "BartheScore"
+                            }]
+                        }
+                    ],
+                    "wait_spec": {
+                        "_type": "TASK_WAIT",
+                        "events": [{
+                            "_type": "TIMELINE_MOMENT",
+                            "timeline_offset": "P3D",
+                            "_comment": "This task group should be activated after one day",
+                            "fixed_time": {
+                                "_type": "CLOCK_TIME",
+                                "time": "08:00",
+                                "_comment": "Should be activated on nursing day"
+                            }
+                        }],
+                        "event_relation": "after"
+                    }
+                },
+                {
+                    "name": "Day 4 tasks",
+                    "_type": "TASK_GROUP",
+                    "uid": {
+                        "value": "TG_Day4_Tasks"
+                    },
+                    "members": [{
+
+                        "_type": "PERFORMABLE_TASK",
+                        "name": "NIHSS",
+                        "action": {
+                            "_type": "DEFINED_ACTION",
+                            "optionality": "mandatory"
+                        },
+                        "capture_dataset": [{
+                            "_type": "DATASET_SPEC",
+                            "form_id": "NIHSS.Score.v1.0.0",
+                            "template_id": "NIHSS.Score"
+                        }]
+                    }],
+                    "wait_spec": {
+                        "_type": "TASK_WAIT",
+                        "events": [{
+                            "_type": "TIMELINE_MOMENT",
+                            "timeline_offset": "P4D",
+                            "_comment": "This task group should be activated after one day",
+                            "fixed_time": {
+                                "_type": "CLOCK_TIME",
+                                "time": "08:00",
+                                "_comment": "Should be activated on nursing day"
+                            }
+                        }],
+                        "event_relation": "after"
+                    }
+                },
+                {
+                    "name": "Day 5 tasks",
+                    "_type": "TASK_GROUP",
+                    "uid": {
+                        "value": "TG_Day5_Tasks"
+                    },
+                    "members": [{
+                            "_type": "PERFORMABLE_TASK",
+                            "name": "NIHSS",
+                            "action": {
+                                "_type": "DEFINED_ACTION",
+                                "optionality": "mandatory"
+                            },
+                            "capture_dataset": [{
+                                "_type": "DATASET_SPEC",
+                                "form_id": "NIHSS.Score.v1.0.0",
+                                "template_id": "NIHSS.Score"
+                            }]
+
+                        },
+                        {
+                            "_type": "PERFORMABLE_TASK",
+                            "name": "Barthel",
+                            "action": {
+                                "_type": "DEFINED_ACTION",
+                                "optionality": "mandatory"
+                            },
+                            "capture_dataset": [{
+                                "_type": "DATASET_SPEC",
+                                "form_id": "Barthel.Score.v1.0.0",
+                                "template_id": "BartheScore"
+                            }]
+
+                        }
+                    ],
+                    "wait_spec": {
+                        "_type": "TASK_WAIT",
+                        "events": [{
+                            "_type": "TIMELINE_MOMENT",
+                            "timeline_offset": "P5D",
+                            "_comment": "This task group should be activated after one day",
+                            "fixed_time": {
+                                "_type": "CLOCK_TIME",
+                                "time": "08:00",
+                                "_comment": "Should be activated on nursing day"
+                            }
+                        }],
+                        "event_relation": "after"
+                    }
+                },
+                {
+                    "name": "Disharge tasks",
+                    "_type": "TASK_GROUP",
+                    "uid": {
+                        "value": "Discharge_tasks"
+                    },
+                    "members": [{
+
+                            "_type": "PERFORMABLE_TASK",
+                            "name": "mRS at discharge",
+                            "action": {
+                                "_type": "DEFINED_ACTION",
+                                "optionality": "mandatory"
+                            },
+                            "capture_dataset": [{
+                                "_type": "DATASET_SPEC",
+                                "form_id": "MRS_Screening_Discharge.v1.0.0",
+                                "template_id": "MRS_Screening.v1"
+                            }]
+                        },
+                        {
+
+                            "_type": "PERFORMABLE_TASK",
+                            "name": "NIHSS",
+                            "action": {
+                                "_type": "DEFINED_ACTION",
+                                "optionality": "mandatory"
+                            },
+                            "capture_dataset": [{
+                                "_type": "DATASET_SPEC",
+                                "form_id": "NIHSS.Score.v1.0.0",
+                                "template_id": "NIHSS.Score"
+                            }]
+                        },
+                        {
+
+                            "_type": "PERFORMABLE_TASK",
+                            "name": "Barthel",
+                            "action": {
+                                "_type": "DEFINED_ACTION",
+                                "optionality": "mandatory"
+                            },
+                            "capture_dataset": [{
+                                "_type": "DATASET_SPEC",
+                                "form_id": "Barthel.Score.v1.0.0",
+                                "template_id": "BartheScore"
+                            }]
+                        }
+                    ],
+                    "wait_spec": {
+                        "_type": "TASK_WAIT",
+                        "events": [{
+                            "_type": "SYSTEM_NOTIFICATION",
+                            "system_id": "DIPS_PAS",
+                            "notification_type": "DISCHARGE",
+                            "reference_id": "current(_episode_of_care_id)",
+                            "other_details": {
+                                "_type": "ITEM_STRUCTURE",
+                                "_comment": "Do we need some extra information about the system notification? "
+                            }
+                        }]
+                    }
+                }
+            ]
+        }
+    }
+]
