@@ -1,6 +1,9 @@
 [{
-        "$type": "WORK_PLAN",
-        "name": "Nutrition screening at hospital",
+        "_type": "WORK_PLAN",
+        "name": {
+            "value": "Nutrition screening at hospital"
+        },
+        "archetype_node_id": "openehr-task_planning-WORK_PLAN.patient_trajectory_dips.v0.0.1",
         "description": "All patients admitted at hospital should be screened for nutrition",
         "plans": [{
                 "value": "TP_Nutrition_Screening"
@@ -14,108 +17,132 @@
         ]
     },
     {
-        "$type": "TASK_PLAN",
+        "_type": "TASK_PLAN",
+        "archetype_node_id": "openehr-task_planning-TASK_PLAN.nutrition_screening.v0.0.1",
         "uid": {
             "value": "TP_Nutrition_Screening"
         },
-        "name": "Initial screening",
+        "name": {
+            "value": "Initial screening"
+        },
         "description": "Initial screening",
         "principal_performer": "nurse_on_duty",
         "definition": {
-            "$type": "TASK_GROUP",
+            "_type": "TASK_GROUP",
             "uid": {
                 "value": "TG_Initial_Screening"
             },
+            "archetype_node_id":"openehr-task_planning-TASK_GROUP.default_dips.v0.0.1",
             "members": [{
-                    "$type": "PERFORMABLE_TASK",
-                    "name": "Nutritional Risk Screening (NRS 2002)",
+                    "_type": "PERFORMABLE_TASK",
+                    "name": {
+                        "value": "Nutritional Risk Screening (NRS 2002)"
+                    },
                     "description": "Screening for malnutrition using the tool NRS 2002.",
                     "action": {
-                        "$type": "DEFINED_ACTION",
+                        "_type": "DEFINED_ACTION",
                         "subject_preconditions": [{
-                            "$type": "SUBJECT_PRECONDITION",
+                            "_type": "SUBJECT_PRECONDITION",
                             "description": "BMI < 20.5",
                             "expression": {
-                                "$type": "BOOLEAN_CONTEXT_EXPRESSION",
-                                "value": "$bmi.magnitude < 20.5"
+                                "_type": "BOOLEAN_CONTEXT_EXPRESSION",
+                                "value": "_bmi.magnitude < 20.5"
                             }
                         }],
                         "prototype": [],
                         "optionality": "optional"
                     },
                     "capture_dataset": [{
-                        "$type": "DATASET_SPEC",
+                        "_type": "DATASET_SPEC",
                         "form_id": "NRS2002.v2.1.0",
                         "template_id": "NRS2002_Screening"
                     }]
                 },
                 {
-                    "$type": "DECISION_GROUP",
-                    "name": "Decide follow up",
+                    "_type": "DECISION_GROUP",
+                    "name": {
+                        "value": "Decide follow up"
+                    },
                     "uid": {
                         "value": "DG_Decide_Follow_Up"
                     },
                     "test": {
-                        "$type": "CONTEXT_EXPRESSION",
+                        "_type": "CONTEXT_EXPRESSION",
                         "name": "TotalScore  of openEHR-EHR-OBSERVATION.nutritional_risk_screening.v1 ",
                         "expression": "SELECT o/data[at0001]/events[at0002]/data[at0003]/items[at0032]/items[at0030]/value/magnitude as nutrition_score FROM COMPOSITION c  contains OBSERVATION o[openEHR-EHR-OBSERVATION.nutritional_risk_screening.v1] ORDER BY o/data[at0001]/events[at0002]/time desc",
                         "type": "INTEGER",
                         "_comment": "The expression is an AQL - and the result is an integer which is used in the descision branch below"
                     },
                     "members": [{
-                            "$type": "DECISION_BRANCH",
-                            "name": "Low risk: Routine screening",
+                            "_type": "DECISION_BRANCH",
+                            "name": {
+                                "value": "Low risk: Routine screening"
+                            },
                             "uid": {
                                 "value": "LOW_RISK_GROUP"
                             },
                             "value_constraint": {
-                                "$type": "BOOLEAN_CONTEXT_EXPRESSION",
-                                "value": "$nutrion_score <= 0"
+                                "_type": "BOOLEAN_CONTEXT_EXPRESSION",
+                                "expression": "_nutrion_score <= 0"
                             },
                             "members": [{
-                                "$type": "PERFORMABLE_TASK",
-                                "name": "Repeat screening in a week",
+                                "_type": "PERFORMABLE_TASK",
+                                "name": {
+                                    "value": "Repeat screening in a week"
+                                },
                                 "description": "Need some more details on how to make this branch correct"
                             }]
                         },
                         {
-                            "$type": "DECISION_BRANCH",
-                            "name": "Medium risk: Observation",
+                            "_type": "DECISION_BRANCH",
+                            "name": {
+                                "value": "Medium risk: Observation"
+                            },
                             "uid": {
                                 "value": "MEDIUM_RISK_GROUP"
                             },
                             "value_constraint": {
-                                "$type": "BOOLEAN_CONTEXT_EXPRESSION",
-                                "value": "$nutrion_score == 1 || $nutrition_score == 2"
+                                "_type": "BOOLEAN_CONTEXT_EXPRESSION",
+                                "expression": "_nutrion_score == 1 || _nutrition_score == 2"
                             },
                             "members": [{
-                                "$type": "PERFORMABLE_TASK",
-                                "name": "Observasjon",
+                                "_type": "PERFORMABLE_TASK",
+                                "name": {
+                                    "value": "Observasjon"
+                                },
                                 "description": "Middels risiko pasient. Dokumenter næringsinntak i tre dager. ",
                                 "action": {
-                                    "$type": "DEFINED_ACTION",
+                                    "_type": "DEFINED_ACTION",
                                     "optionality": "optional"
                                 },
                                 "capture_dataset": [{
-                                    "$type": "DATASET_SPEC",
+                                    "_type": "DATASET_SPEC",
                                     "form_id": "Nutrient_intake.v1.0.0",
                                     "template_id": "Nutrient_intake_at_hospital"
                                 }]
                             }]
                         },
                         {
-                            "$type": "DECISION_BRANCH",
-                            "name": "High risk: Take action",
+                            "_type": "DECISION_BRANCH",
+                            "name": {
+                                "value": "High risk: Take action"
+                            },
                             "uid": {
                                 "value": "HIGH_RISK_GROUP"
                             },
                             "value_constraint": {
-                                "$type": "BOOLEAN_CONTEXT_EXPRESSION",
-                                "value": "$nutrion_score >= 3"
+                                "_type": "BOOLEAN_CONTEXT_EXPRESSION",
+                                "value": "_nutrion_score >= 3"
                             },
                             "members": [{
-                                "name": "Request clinical nutrition physiologist",
-                                "$type": "HAND_OFF",
+                                "_type": "DISPATCHABLE_TASK",
+                                "name": {
+                                    "value": "Request clinical nutrition physiologist"
+                                },
+
+                                "action": {
+                                    "_type": "HAND_OFF"
+                                },
                                 "target": "TP_CLIN_NUTR_PHYS",
                                 "wait": "false"
                             }]
@@ -126,74 +153,89 @@
         }
     },
     {
-        "$type": "TASK_PLAN",
+        "_type": "TASK_PLAN",
         "uid": {
             "value": "TP_DOCTOR_ASSESSMENT"
         },
-        "name": "Nutriotional Risk Outcome Assessment",
+        "name": {
+            "value": "Nutriotional Risk Outcome Assessment"
+        },
         "description": "The doctor evaluates effect",
         "principal_performer": "doctor",
         "definition": {
-            "$type": "TASK_GROUP",
+            "_type": "TASK_GROUP",
             "uid": {
                 "value": "TG_Doctor_Assessment"
             },
             "members": [{
-                    "$type": "PERFORMABLE_TASK",
-                    "name": "Evaluate effect",
+                    "_type": "PERFORMABLE_TASK",
+                    "name": {
+                        "value": "Evaluate effect"
+                    },
                     "description": "Evaluate effect of nutrition actions",
                     "action": {
-                        "$type": "DEFINED_ACTION",
+                        "_type": "DEFINED_ACTION",
                         "optionality": "mandatory"
                     },
                     "capture_dataset": [{
-                        "$type": "DATASET_SPEC",
+                        "_type": "DATASET_SPEC",
                         "form_id": "EvaluateNutritionEffect.v1.0.0",
                         "template_id": "EvaluteNutritionEffectByDoctor"
                     }]
                 },
                 {
-                    "$type": "DECISION_GROUP",
-                    "name": "Choose follow-up strategy",
+                    "_type": "DECISION_GROUP",
+                    "name": {
+                        "value": "Choose follow-up strategy"
+                    },
                     "uid": {
                         "value": "DG_Doctor_Choos_Follow_Up_Strategy"
                     },
                     "test": {
-                        "$type": "CONTEXT_EXPRESSION",
+                        "_type": "CONTEXT_EXPRESSION",
                         "name": "Evaluate effect",
-                        "expression": "$hasEffect",
+                        "expression": "_hasEffect",
                         "type": "BOOLEAN"
                     },
                     "members": [{
-                        "$type": "DECISION_BRANCH",
-                        "name": "Has effect",
+                        "_type": "DECISION_BRANCH",
+                        "name": {
+                            "value": "Has effect"
+                        },
                         "uid": {
                             "value": "has_effect_of_actions"
                         },
                         "value_constraint": {
-                            "$type": "BOOLEAN_CONTEXT_EXPRESSION",
-                            "value": "$hasEffect"
+                            "_type": "BOOLEAN_CONTEXT_EXPRESSION",
+                            "expression": "_hasEffect"
                         },
                         "members": [{
-                            "$type": "PERFORMABLE_TASK",
-                            "name": "Follow up in n days",
+                            "_type": "PERFORMABLE_TASK",
+                            "name": {
+                                "value": "Follow up in n days"
+                            },
                             "description": "The doctor should be able to tell when to repeat the assessment"
                         }]
                     }, {
-                        "$type": "DECISION_BRANCH",
-                        "name": "No effect",
+                        "_type": "DECISION_BRANCH",
+                        "name": {
+                            "value": "No effect"
+                        },
                         "uid": {
                             "value": "has_no_effect_of_actions"
                         },
                         "value_constraint": {
-                            "$type": "BOOLEAN_CONTEXT_EXPRESSION",
-                            "value": "! $hasEffect"
+                            "_type": "BOOLEAN_CONTEXT_EXPRESSION",
+                            "expression": "! _hasEffect"
                         },
-                        "members": [
-
-                            {
-                                "name": "Request clinical nutrition physiologist",
-                                "$type": "HAND_OFF",
+                        "members": [{
+                                "_type": "DISPATCHABLE_TASK",
+                                "name": {
+                                    "value": "Request clinical nutrition physiologist"
+                                },
+                                "action": {
+                                    "_type": "HAND_OFF"
+                                },
                                 "target": "TP_CLIN_NUTR_PHYS",
                                 "wait": "false"
                             }
@@ -205,26 +247,30 @@
         }
     },
     {
-        "$type": "TASK_PLAN",
+        "_type": "TASK_PLAN",
         "uid": {
             "value": "TP_CLIN_NUTR_PHYS"
         },
-        "name": "Follow up by clinical nutrition physiologist",
+        "name": {
+            "value": "Follow up by clinical nutrition physiologist"
+        },
         "principal_performer": "Clinical Nutrition Physiologist",
         "definition": {
-            "$type": "TASK_GROUP",
+            "_type": "TASK_GROUP",
             "uid": {
                 "value": "CLIN_NUTR_PHYS_01"
             },
             "members": [{
-                "$type": "PERFORMABLE_TASK",
-                "name": "Evaluate patient",
+                "_type": "PERFORMABLE_TASK",
+                "name": {
+                    "value": "Evaluate patient"
+                },
                 "description": "I have no idea what to fill in this plan..... ",
                 "action": {
-                    "$type": "DEFINED_ACTION"
+                    "_type": "DEFINED_ACTION"
                 },
                 "capture_dataset": [{
-                    "$type": "DATASET_SPEC",
+                    "_type": "DATASET_SPEC",
                     "form_id": "InitialScreeningByClinNutrPhysiologist.v1.0.0",
                     "template_id": "Nutrition_Screening_By_ClinNutrPhys"
                 }]
