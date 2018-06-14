@@ -1,0 +1,348 @@
+archetype (adl_version=1.4; uid=a2139634-71ef-4115-ab64-a6534c0850f3)
+    openEHR-EHR-TASK_PLAN.screeening_nutrition.v0
+
+concept
+    [at0000]
+
+language
+    original_language = <[ISO_639-1::nb]>
+    translations = <
+        ["en"] = <
+            language = <[ISO_639-1::en]>
+            author = <
+            >
+        >
+    >
+
+description
+    original_author = <
+        ["date"] = <"2018-06-05">
+    >
+    lifecycle_state = <"unmanaged">
+    details = <
+        ["nb"] = <
+            language = <[ISO_639-1::nb]>
+            purpose = <"The purpose of this archetype is to test how to write an openEHR Task Planning archetype ">
+            keywords = <"DIPS", ...>
+            use = <"Use to test parsing of openEHR Task Planning ">
+            misuse = <"Not for production">
+        >
+        ["en"] = <
+            language = <[ISO_639-1::en]>
+            purpose = <"Screen risk patient for nutritional problems.">
+            copyright = <"© openEHR Foundation">
+            use = <"Use to test openEHR Task Plan">
+            misuse = <"Not ready for production">
+        >
+    >
+    other_details = <
+        ["licence"] = <"This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.">
+        ["custodian_organisation"] = <"openEHR Foundation">
+        ["references"] = <"https://github.com/bjornna/TP-examples/tree/master/10-nutrition">
+        ["original_namespace"] = <"org.openehr">
+        ["original_publisher"] = <"openEHR Foundation">
+        ["custodian_namespace"] = <"org.openehr">
+        ["MD5-CAM-1.0.1"] = <"97ed81d858293bc56ec151d47d369025">
+        ["build_uid"] = <"363d1dad-d5e8-3baf-ab99-4177a9b18390">
+    >
+
+definition
+    TASK_PLAN[at0000] matches {
+        definition matches {
+            TASK_GROUP[at0001] matches {
+                members cardinality matches {0..*; unordered} matches {
+                    PERFORMABLE_TASK[at0002] occurrences matches {0..1} matches {
+                        action matches {
+                            DEFINED_ACTION[at0009] matches {
+                                subject_preconditions cardinality matches {0..*; unordered} matches {
+                                    SUBJECT_PRECONDITION[at0010] occurrences matches {0..1} matches {
+                                        expression matches {
+                                            CONTEXT_EXPRESSION[at0012] matches {
+                                                expression matches {"_bmi.magnitude < 20.5"}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        capture_dataset cardinality matches {0..*; unordered} matches {
+                            DATASET_SPEC[at0003] occurrences matches {0..1} matches {
+                                form_id matches {"NRS2002.v2.1.0","NRS2002-Extended.v2.1.0"}
+                                template_id matches {"NRS2002_Screening"}
+                            }
+                        }
+                    }
+                    DECISION_GROUP[at0004] occurrences matches {0..1} matches {
+                        test matches {
+                            CONTEXT_EXPRESSION[at0005] matches {
+                                expression matches {"SELECT o/data[at0001]/events[at0002]/data[at0003]/items[at0032]/items[at0030]/value/magnitude as nutrition_score FROM COMPOSITION c  contains OBSERVATION o[openEHR-EHR-OBSERVATION.nutritional_risk_screening.v1] ORDER BY o/data[at0001]/events[at0002]/time desc"}
+                                type matches {
+                                    TYPE_DEF_INTEGER[at0006] matches {*}
+                                }
+                                name matches {"nutrition_score"}
+                            }
+                        }
+                        members cardinality matches {0..*; unordered} matches {
+                            DECISION_BRANCH[at0007] occurrences matches {0..1} matches {
+                                value_constraint matches {
+                                    CONTEXT_EXPRESSION[at0008] matches {
+                                        expression matches {"_nutrition_score <= 0"}
+                                        type matches {
+                                            TYPE_DEF_BOOLEAN[at0011] matches {*}
+                                        }
+                                    }
+                                }
+                            }
+                            DECISION_BRANCH[at0013] occurrences matches {0..1} matches {
+                                value_constraint matches {
+                                    CONTEXT_EXPRESSION[at0014] matches {
+                                        expression matches {"_nutrion_score == 1 || _nutrition_score == 2"}
+                                        type matches {
+                                            TYPE_DEF_BOOLEAN[at0015] matches {*}
+                                        }
+                                    }
+                                }
+                                members cardinality matches {0..*; unordered} matches {
+                                    PERFORMABLE_TASK[at0016] occurrences matches {0..1} matches {
+                                        capture_dataset cardinality matches {0..*; unordered} matches {
+                                            DATASET_SPEC[at0017] occurrences matches {0..1} matches {
+                                                form_id matches {"Nutrient_intake.v1.0.0"}
+                                                template_id matches {"Nutrient_intake_at_hospital"}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            DECISION_BRANCH[at0018] occurrences matches {0..1} matches {
+                                value_constraint matches {
+                                    CONTEXT_EXPRESSION[at0019] matches {
+                                        expression matches {"_nutrion_score >= 3\""}
+                                        type matches {
+                                            TYPE_DEF_BOOLEAN[at0020] matches {*}
+                                        }
+                                    }
+                                }
+                                members cardinality matches {0..*; unordered} matches {
+                                    DISPATCHABLE_TASK[at0021] occurrences matches {0..1} matches {
+                                        action matches {
+                                            HAND_OFF[at0022] matches {
+                                                target matches {
+                                                    UID_BASED_ID[at0023] matches {*}
+                                                }
+                                            }
+                                        }
+                                        wait matches {true, false; false}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+ontology
+    term_definitions = <
+        ["nb"] = <
+            items = <
+                ["at0000"] = <
+                    text = <"Screening for ernæringsmessig risikko">
+                    description = <"screeening_nutrition">
+                >
+                ["at0001"] = <
+                    text = <"Oppgaver">
+                    description = <"Oppgave liste for oppfølging av ernæringsmessig risiko ">
+                >
+                ["at0002"] = <
+                    text = <"Nutritional Risk Screening (NRS 2002)">
+                    description = <"Screening for malnutrition using the tool NRS 2002.">
+                >
+                ["at0003"] = <
+                    text = <"DATASET_SPEC">
+                    description = <"*">
+                >
+                ["at0009"] = <
+                    text = <"DEFINED_ACTION">
+                    description = <"*">
+                >
+                ["at0010"] = <
+                    text = <"SUBJECT_PRECONDITION">
+                    description = <"*">
+                >
+                ["at0012"] = <
+                    text = <"Test">
+                    description = <"*">
+                >
+                ["at0004"] = <
+                    text = <"Decide follow up">
+                    description = <"Decide follow up">
+                >
+                ["at0005"] = <
+                    text = <"Evaluate total score">
+                    description = <"Evaluate the total score from nutrition screening">
+                >
+                ["at0006"] = <
+                    text = <"TYPE_DEF_INTEGER">
+                    description = <"*">
+                >
+                ["at0007"] = <
+                    text = <"Low risk: Routine screening">
+                    description = <"*">
+                >
+                ["at0008"] = <
+                    text = <"Low risk evaluation">
+                    description = <"*">
+                >
+                ["at0011"] = <
+                    text = <"TYPE_DEF_BOOLEAN">
+                    description = <"*">
+                >
+                ["at0013"] = <
+                    text = <"Medium risk: Observation">
+                    description = <"Patient is of medium risk. Start observation">
+                >
+                ["at0014"] = <
+                    text = <"Medium risk expression">
+                    description = <"*">
+                >
+                ["at0015"] = <
+                    text = <"TYPE_DEF_BOOLEAN">
+                    description = <"*">
+                >
+                ["at0016"] = <
+                    text = <"Observation for 3 days">
+                    description = <"*">
+                >
+                ["at0017"] = <
+                    text = <"DATASET_SPEC">
+                    description = <"*">
+                >
+                ["at0018"] = <
+                    text = <"High risk: Take action">
+                    description = <"Patient is in high risk ">
+                >
+                ["at0019"] = <
+                    text = <"High risk expression">
+                    description = <"*">
+                >
+                ["at0020"] = <
+                    text = <"TYPE_DEF_BOOLEAN">
+                    description = <"*">
+                >
+                ["at0021"] = <
+                    text = <"Request clinical nutrition physiologist">
+                    description = <"*">
+                >
+                ["at0022"] = <
+                    text = <"HAND_OFF">
+                    description = <"*">
+                >
+                ["at0023"] = <
+                    text = <"Request clinical nutrition physiologist">
+                    description = <"Request clinical nutrition physiologist">
+                >
+            >
+        >
+        ["en"] = <
+            items = <
+                ["at0000"] = <
+                    text = <"Nutritional risk screening">
+                    description = <"Nutritional risk screening">
+                >
+                ["at0001"] = <
+                    text = <"Nutritional risk screening tasks">
+                    description = <"Task plan for follow up on nutritional risk
+">
+                >
+                ["at0002"] = <
+                    text = <"Nutritional Risk Screening (NRS 2002)">
+                    description = <"Screening for malnutrition using the tool NRS 2002. ">
+                >
+                ["at0003"] = <
+                    text = <"DATASET_SPEC">
+                    description = <"*">
+                >
+                ["at0009"] = <
+                    text = <"DEFINED_ACTION">
+                    description = <"*">
+                >
+                ["at0010"] = <
+                    text = <"SUBJECT_PRECONDITION">
+                    description = <"*">
+                >
+                ["at0012"] = <
+                    text = <"Test ">
+                    description = <"*">
+                >
+                ["at0004"] = <
+                    text = <"Decide follow up">
+                    description = <"Decide follow up">
+                >
+                ["at0005"] = <
+                    text = <"Evaluate total score ">
+                    description = <"*">
+                >
+                ["at0006"] = <
+                    text = <"TYPE_DEF_INTEGER ">
+                    description = <"*">
+                >
+                ["at0007"] = <
+                    text = <"Low risk: Routine screening">
+                    description = <"*">
+                >
+                ["at0008"] = <
+                    text = <"Low risk evaluation">
+                    description = <"*">
+                >
+                ["at0011"] = <
+                    text = <"TYPE_DEF_BOOLEAN">
+                    description = <"*">
+                >
+                ["at0013"] = <
+                    text = <"Medium risk: Observation ">
+                    description = <"*">
+                >
+                ["at0014"] = <
+                    text = <"Medium risk expression">
+                    description = <"*">
+                >
+                ["at0015"] = <
+                    text = <"TYPE_DEF_BOOLEAN">
+                    description = <"*">
+                >
+                ["at0016"] = <
+                    text = <"Observation for 3 days">
+                    description = <"*">
+                >
+                ["at0017"] = <
+                    text = <"DATASET_SPEC">
+                    description = <"*">
+                >
+                ["at0018"] = <
+                    text = <"High risk: Take action">
+                    description = <"*">
+                >
+                ["at0019"] = <
+                    text = <"High risk expression">
+                    description = <"*">
+                >
+                ["at0020"] = <
+                    text = <"TYPE_DEF_BOOLEAN">
+                    description = <"*">
+                >
+                ["at0021"] = <
+                    text = <"DISPATCHABLE_TASK">
+                    description = <"*">
+                >
+                ["at0022"] = <
+                    text = <"HAND_OFF ">
+                    description = <"*">
+                >
+                ["at0023"] = <
+                    text = <"Request clinical nutrition physiologist">
+                    description = <"*">
+                >
+            >
+        >
+    >

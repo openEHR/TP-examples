@@ -2,6 +2,10 @@
 
 = Follow up on stroke ward 
 
+== History 
+
+14.06.2018 :: Added an archetype openEHR-EHR-TASK_PLAN.stroke_follow_up_ward.v0.adl as example. It is not complete. Just added to explore some key concepts of writing TP archetypes
+
 == Background 
 Given a patient with stroke or suspected stroke. Then the  following four tasks should be performed during the stay: 
 

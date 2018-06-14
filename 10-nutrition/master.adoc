@@ -2,6 +2,11 @@
 
 = Nutrition 
 
+== History 
+
+
+14.06.2018 :: Added an initial archetype (ADL) file developed with Marand Archetype designer. It is not complete. Just in a state to illustrate some key concepts. 
+
 == Preface
 Nutrition risk screening and assessment is used as an example since about 30% of all patients in hospital are undernourished. A large part of these patients are undernourished when admitted to hospital and in the majority of these, undernutrition develops further while in hospital. <<McWhirter>>. This can be prevented if special attention is paid to their nutritional care. There is every reason,therefore, for hospitals and healthcare organizations to adopt a minimum set of standards in this area. <<ESPENScreening>>. 
 

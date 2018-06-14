@@ -1,0 +1,88 @@
+[{
+    "_type": "WORK_PLAN",
+    "name": {
+        "value": "STORY-1-Write-A-Clinical-Note-Workplan"
+    },
+    "archetype_node_id": "openehr-task_planning-WORK_PLAN.patient_trajectory_dips.v0.0.1",
+    "description": "An technical plan to illustrate how EHR Flow can delegate the writing of a clinical note to Arena Worktasks",
+    "plans": [{
+        "value": "STORY-1-Write-A-Clinical-Note-TaskPlan"
+    }],
+    "top_level_plans": [{
+        "value": "STORY-1-Write-A-Clinical-Note-TaskPlan",
+        "_comment": "Must add this TASK_PLAN to top level to make the engine activate the plan when the compositions is persisted"
+    }]
+}, {
+    "_type": "TASK_PLAN",
+    "uid": {
+        "value": "STORY-1-Write-A-Clinical-Note-TaskPlan"
+    },
+    "name": "Write a clinical note and approve it to the EHR",
+    "description": "One and only one taskplan here. And the task plan has only one task to be executed. ",
+    "principal_performer": "DIPS-BNA",
+    "definition": {
+        "_type": "TASK_GROUP",
+        "uid": {
+            "value": "STORY_1_TG"
+        },
+        "execution_type": "sequence",
+        "members": [
+
+            {
+                "_type": "DISPATCHABLE_TASK",
+                "name": {
+                    "value": "Write a clinical note", 
+                    "_comment":"Dispatched to arena Worktasks - the name.value might be displayed to the user in the external system"
+                },
+                "archetype_node_id": "openehr-task_planning-DISPATCHABLE_TASK.worktasks_dips.v0.0.1",
+                "wait": "true",
+                "callback": {
+                    "_type": "CALLBACK_WAIT",
+                    "fail_action": {
+                        "_comment": "Action to perform if any listened-for event returns a fail result."
+
+                    },
+                    "event": {
+                        "_type": "CALLBACK_NOTIFICATION",
+                        "task_id": "UID_BASED_ID",
+                        "request_id": "",
+                        "other_details": {
+                            "_comment": "ITEM_STRUCTURE"
+                        }
+
+                    }
+                },
+                "action": {
+                    "_type": "SYSTEM_REQUEST",
+                    "system_call": {
+                        "_type": "API_CALL",
+                        "_comment": "See http://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_task_planning_model_overview ",
+                        "system_id": "Arena",
+                        "call_name": "Worktasks.CreateWorktasks",
+                        "parameter_map": [{
+                            "name": "episode_of_care_id",
+                            "context_name": "$episodeOfCareId"
+
+                        },{
+                            "name": "subject_of_care_id", 
+                            "context_name":"$ehr_id"
+                        }],
+                        "bound_parameters": [{
+                            "name": "workgroup_concept",
+                            "type": "TYPE_DEF_STRING",
+                            "value": "SIGN_LAB"
+                        }, {
+                            "name": "finish_date",
+                            "type": "TYPE_DEF_DATE_TIME",
+                            "value": "2018.06.20", 
+                            "_comment": "The date was set by the planner (the user) in the UI"
+                        }]
+
+                    }
+
+                }
+
+            }
+        ]
+    }
+}]

@@ -1,0 +1,755 @@
+<html>
+    <head>
+         <script language="javascript">
+const storedPlans = [
+    "13-stroke/TP_Follow_Up_Stroke.json",
+    "10-nutrition/TP_Nutrition_Screening.json",
+    "14-external_task/TP_External_Worktasks.json"
+    
+];
+
+/*
+  TPViewer - A simple visual representation of an EHR Task Plan.
+ 
+  Parses JSON-files with plans and outputs a somewhat interactive html view.
+  
+  Features:
+  - Mulitple JSON files with one work plan in each, which may contain many task plans.
+  - Inline view and edit of task plan JSON.
+  - Supported elements: 
+        - Tasks (Performable and Dispatchable)
+        - Task groups (both sequencial and parallel) 
+        - Decision groups
+        - Condition groups
+        - Event groups
+        - wait_spec with 
+            - system notification
+            - timeline moment
+  
+  Requirements:
+  - Uses no external libraries or images.
+  - Uses modern browser concepts such as canvas, might not work on older browsers.
+  - Works locally or remotely. 
+  - When used locally you might need to use the textarea for JSON input, in case security settings in your browsers disables local file access to plans. 
+ 
+  Developer notes:
+  - Element IDs on task plan elements are corresponding to their UID.value
+  - Birds eye view of the code:
+            1. Load JSON for a spesific work plan.
+            2. Build DOM recursively for each included task plan.
+                - Uses ids and classes from TP namespace, also sets some custom attributes for additional properties like wait_spec.
+                - Adds interactive elements like buttons and event handlers (e.g. edit json feature).
+
+            3. Parse DOM and add graphic elements (canvas) around items based on their class names and attributes.
+            5. Repeat for each work plan to load.
+ */
+
+const DIPS = {};
+DIPS.TPViewer = {};
+DIPS.TPViewer.LoadedJSON = [];
+
+// Encapsulates JS code for creating more complex GUI using canvas
+// Must be run after the DOM is fully built to get the correct canvas sizes
+DIPS.TPViewer.EnableGraphics = function(rootElem) 
+{
+    const query = 
+        `.PERFORMABLE_TASK, 
+         .DISPATCHABLE_TASK, 
+         .CONDITION_BRANCH, 
+         .CONDITION_GROUP, 
+         .DECISION_BRANCH, 
+         .DECISION_GROUP, 
+         .TASK_GROUP,
+         .EVENT_GROUP,
+         .EVENT_BRANCH`;
+
+    const createCanvasNode = function(width,height,className)
+    {
+        const canvasNode = document.createElement('canvas');
+        canvasNode.setAttribute('width', width + 'px');
+        canvasNode.setAttribute('height', height + 'px');
+        canvasNode.setAttribute('class', className);
+        return canvasNode;
+    };
+
+    const drawTaskGroupEnd = function(canvasNode)
+    {
+        const ctx = canvasNode.getContext("2d");
+        const width = canvasNode.width;
+        const height = canvasNode.height;
+        // Big arrow
+        ctx.moveTo(width,0);
+        ctx.moveTo(0,0);
+        ctx.lineTo(width,height/2);
+        ctx.lineTo(0,height);
+        ctx.moveTo(width,height);
+        ctx.stroke();
+    };
+
+    const drawSequentialStart = function(canvasNode)
+    {
+        const ctx = canvasNode.getContext("2d");
+        const width = canvasNode.width;
+        const height = canvasNode.height;
+        // Big arrow
+        ctx.moveTo(width,0);
+        ctx.lineTo(0,0);
+        ctx.lineTo(width,height/2);
+        ctx.lineTo(0,height);
+        ctx.lineTo(width,height);
+        // Small arrow
+        ctx.moveTo(10,5);
+        ctx.lineTo(20,5);
+        ctx.lineTo(17,2);
+        ctx.moveTo(20,5);
+        ctx.lineTo(17,8);
+        ctx.stroke();
+    };
+
+    const drawParallelEkstraArrows = function(canvasNode)
+    {
+        const ctx = canvasNode.getContext("2d");        
+        // Small arrow 2
+        ctx.moveTo(10,12);
+        ctx.lineTo(20,12);
+        ctx.lineTo(17,9);
+        ctx.moveTo(20,12);
+        ctx.lineTo(17,15);
+        // Small arrow 3
+        ctx.moveTo(10,19);
+        ctx.lineTo(20,19);
+        ctx.lineTo(17,16);
+        ctx.moveTo(20,19);
+        ctx.lineTo(17,22);
+        ctx.stroke();
+    };
+
+    const drawEventGroupCircle = function(canvasNode)
+    {
+        const ctx = canvasNode.getContext("2d");
+        const width = canvasNode.width;
+        const height = canvasNode.height;
+        ctx.beginPath();
+        const radius = 14;
+        // circle
+        ctx.arc(width/2,height/2,radius,0,Math.PI*2);
+        ctx.stroke();
+    }
+
+    const drawConditionalStart = function(canvasNode)
+    {        
+        const ctx = canvasNode.getContext("2d");
+        const width = canvasNode.width;
+        const height = canvasNode.height;
+        // Big diamond
+        ctx.moveTo(width,0);
+        ctx.lineTo(width/2,0);
+        ctx.lineTo(width,height/2);
+        ctx.lineTo(width/2,height);
+        ctx.lineTo(0,height/2);
+        ctx.lineTo(width/2,0);
+        ctx.moveTo(width/2,height);
+        ctx.lineTo(width,height);
+        // Small arrow
+        ctx.moveTo(width/2 + 5,5);
+        ctx.lineTo(width/2 + 15,5);
+        ctx.lineTo(width/2 + 12,2);
+        ctx.moveTo(width/2 + 15,5);
+        ctx.lineTo(width/2 + 12,8);
+        ctx.stroke();
+    };
+
+    const drawSystemEvent = function(canvasNode)
+    {
+        const ctx = canvasNode.getContext("2d");
+        const width = canvasNode.width;
+        const height = canvasNode.height;
+        ctx.beginPath();
+        const radius = 15;
+        const offset = 9;
+        // circle
+        ctx.arc(width/2,height/2,radius,0,Math.PI*2); 
+        // rectangle
+        ctx.strokeRect(width/2-offset, height/2-offset, offset*2, offset*2); 
+        // triangle
+        ctx.moveTo(width/2-offset, height/2-offset);
+        ctx.lineTo(width/2,height/2);
+        ctx.lineTo(width/2+offset,height/2-offset);
+        ctx.stroke();
+    }
+
+    const drawTimerEvent = function(canvasNode)
+    {
+        const ctx = canvasNode.getContext("2d");
+        const width = canvasNode.width;
+        const height = canvasNode.height;
+        ctx.beginPath();
+        const radius = 15;
+        const offset = 3;
+        // outer circle
+        ctx.arc(width/2,height/2,radius,0,Math.PI*2); 
+        // inner circle
+        ctx.arc(width/2,height/2,radius-offset,0,Math.PI*2); 
+        // clock
+        ctx.moveTo(width/2,height/2-radius+offset+2);
+        ctx.lineTo(width/2,height/2);
+        ctx.lineTo(width/2+radius-offset-4,height/2);
+        ctx.stroke();
+    }
+    
+    const addGraphics = function(node, prependsArray, append, useWrapper)
+    {
+        const width = '30';
+        const height = node.offsetHeight;
+        const nodeBefore = createCanvasNode(width,height,'before');
+        if (useWrapper)
+        {
+            // Wrapper is used sometimes since canvas element is harder to attach stuff like hover events to
+            const canvasWrapper = document.createElement('div');
+            canvasWrapper.setAttribute('class', 'canvaswrapper');
+            canvasWrapper.appendChild(nodeBefore);
+            node.parentElement.insertBefore(canvasWrapper, node);
+        }
+        else {
+            node.parentElement.insertBefore(nodeBefore, node);
+        }        
+        prependsArray.forEach(prepend => { 
+            prepend(nodeBefore);
+        });
+        if (append)
+        {
+            const nodeAfter = createCanvasNode(width,height,'after');
+            node.parentElement.insertBefore(nodeAfter, node.nextSibling);
+            append(nodeAfter);
+        }
+    }
+
+    const createTooltip = function(parent, tooltipItems)
+    {
+        const tooltipElem = document.createElement('span');
+        tooltipElem.classList.add('tooltip-content');
+        //if (parent.className) { tooltipElem.classList.add(parent.classList.item(0)); }
+        tooltipItems.forEach(item => {
+            const labelNode = document.createElement('div');
+            labelNode.setAttribute('class', 'tooltip-label');
+            labelNode.textContent = item.label;
+            tooltipElem.appendChild(labelNode);
+            const textNode = document.createElement('div');
+            textNode.textContent = item.text;
+            textNode.setAttribute('class', 'tooltip-text');
+            tooltipElem.appendChild(textNode);
+        });       
+        parent.appendChild(tooltipElem);
+        parent.classList.add('tooltip');
+    }
+
+    const addGraphicsWithTooltip = function(node, drawBefore, drawAfter, tooltipItems)
+    {
+        drawBefore.push(function(node) 
+        {
+            createTooltip(node.parentElement, tooltipItems);
+        });
+        addGraphics(node, drawBefore, drawAfter, true);
+    }
+
+    // Main region starts here
+
+    const nodeset = rootElem.querySelectorAll(query);
+
+    // Reversing the nodeset to get heights calculations on inner canvas elements before their parents
+    // Then perfoming graphics on each matching node, wrapping them with canvas objects before and after
+    Array.from(nodeset).reverse().forEach(node =>
+    {
+        const toolTipsToAdd = [];
+        if (node.getAttribute('description')) 
+        {
+            toolTipsToAdd.push({ label: 'Description', text: node.getAttribute('description') });
+        }
+
+        // WAIT_SPEC
+        if (node.hasAttribute("TASK_WAIT") 
+            && node.getAttribute("TASK_WAIT") == "SYSTEM_NOTIFICATION")
+        {
+            addGraphicsWithTooltip(
+                node, 
+                [drawSystemEvent], 
+                null,
+                [{ label: "SYSTEM_NOTIFICATION", text: node.getAttribute("notification_type") }]);
+        }        
+        if (node.hasAttribute("TASK_WAIT") 
+            && node.getAttribute("TASK_WAIT") == "TIMELINE_MOMENT")
+        {
+            addGraphicsWithTooltip(
+                node, 
+                [drawTimerEvent], 
+                null,
+                [{ label: "TIMELINE_MOMENT", text: node.getAttribute("timeline_offset") + " " + node.getAttribute("fixed_time") }]);
+        }
+
+        // Default task group style
+        if (node.classList.contains("TASK_GROUP"))
+        {
+            const drawBefore = [drawSequentialStart];
+            if (node.classList.contains("parallel"))
+            {
+                drawBefore.push(drawParallelEkstraArrows);
+            }
+            addGraphics(node, drawBefore, drawTaskGroupEnd);        
+        }        
+
+        // Decision group / branch
+        if (node.classList.contains("DECISION_GROUP"))
+        {           
+            addGraphicsWithTooltip(
+                    node,
+                    [drawConditionalStart],
+                    drawTaskGroupEnd,
+                    [{ label: "DECISION_GROUP", text: node.getAttribute("expression") }]);
+        }
+        if (node.classList.contains("DECISION_BRANCH"))
+        {           
+            addGraphicsWithTooltip(
+                    node,                    
+                    [drawConditionalStart],
+                    drawTaskGroupEnd,
+                    [{ label: "DECISION_BRANCH", text: node.getAttribute("constraint") }]);
+        }
+
+        // Event group / branch
+        if (node.classList.contains("EVENT_GROUP"))
+        {           
+            addGraphics(
+                    node,
+                    [drawSequentialStart, drawParallelEkstraArrows, drawEventGroupCircle],
+                    drawTaskGroupEnd);
+        }
+        if (node.classList.contains("EVENT_BRANCH"))
+        {           
+            addGraphics(node, [drawSequentialStart], drawTaskGroupEnd);
+        }
+
+        // Condition group / branch
+        if (node.classList.contains("CONDITION_GROUP"))
+        {           
+            addGraphics(node, [drawSequentialStart], drawTaskGroupEnd);
+        }
+        if (node.classList.contains("CONDITION_BRANCH"))
+        {           
+            addGraphicsWithTooltip(
+                    node,                    
+                    [drawConditionalStart],
+                    drawTaskGroupEnd,
+                    [{ label: "CONDITION_BRANCH", text: node.getAttribute("expression") }]);
+        }
+
+        // Tasks
+        if (node.classList.contains("HAND_OFF"))
+        {           
+            toolTipsToAdd.push({ label: 'TARGET', text: node.getAttribute('target') }); 
+            toolTipsToAdd.push({ label: 'WAIT', text: node.getAttribute('wait') });
+        }
+
+        // Add tooltips to main node
+        if (toolTipsToAdd.length > 0)
+        {
+            createTooltip(node, toolTipsToAdd);
+        }
+    });
+};
+
+// Parses JSON string and builds up DOM elements
+DIPS.TPViewer.Render = function(json)
+{
+    const addElem = function(parent,type,id,className,text)
+    {       
+        const newElem = document.createElement(type);
+        if (className) { newElem.setAttribute('class', className); }
+        if (id) { newElem.setAttribute('id', id); }        
+        if (text) { newElem.textContent = text; }
+        if (parent) { parent.appendChild(newElem); }
+        return newElem;
+    }
+
+    const addElemWithLabel = function(parent,type,id,className,label)
+    {       
+        const newElem = addElem(parent, type, id, className);
+        if (label)
+        {
+            const newLabel = document.createElement('div');
+            newLabel.setAttribute('class', 'label');
+
+            if (label.value){
+                newLabel.textContent = label.value;    
+            }else{
+                // Remove this when examples are corrected
+                newLabel.textContent = label;
+            }
+            newElem.appendChild(newLabel);
+        }
+        return newElem;
+    }
+
+    const parseTaskPlans = function(tp)
+    {
+        const taskPlans = [{}];
+        for(i=1; i<tp.length; i++)
+        {
+            taskPlans[tp[i].uid.value] = tp[i];        
+        }
+        return taskPlans;
+    }
+
+    /* Recurse down the json plan and construct DOM nodes with id=uid,class=type and attributes for extra info */
+    const createPlanElemRecursively = function(parent, item)
+    {
+        if (item._type.endsWith('_GROUP')
+         || item._type.endsWith('_BRANCH')
+         || item._type.endsWith('_TASK'))
+        {
+            const id = (item.uid) ? item.uid.value : null;
+            // Add wrapper to each element, to contain any canvas siblings added in later passes
+            const wrapper = addElem(parent, 'div', null, item._type  + '_WRAPPER');
+            var newParent = addElemWithLabel(wrapper, 'div', id, item._type , item.name);
+
+            if (item._type.endsWith('_TASK') && item.description) {
+                newParent.setAttribute('description', item.description);
+            }
+
+            switch(item._type){
+                case 'TASK_GROUP':
+                    var executionType = item.execution_type || "sequence";
+                    newParent.classList.add(executionType);
+                    break;
+
+                case 'EVENT_GROUP':
+                    break;
+
+                case 'CONDITION_GROUP':
+                    break;
+
+                case 'CONDITION_BRANCH':
+                    newParent.setAttribute('expression', item.test.expression);
+                    break;
+
+                case 'DECISION_GROUP':
+                    newParent.setAttribute('expression', item.test.expression);
+                    break;
+
+                case 'DECISION_BRANCH':
+                    newParent.setAttribute('constraint', item.value_constraint.expression);
+                    break;
+
+                case 'PERFORMABLE_TASK':
+                    break;
+
+                case 'DISPATCHABLE_TASK':
+                    if (item.action && item.action._type) 
+                    {
+                        newParent.classList.add(item.action._type);
+                        if (item.action._type == "HAND_OFF")
+                        {
+                            newParent.setAttribute('target', item.action.target);
+                            newParent.setAttribute('wait', item.wait);
+                        }
+                    }
+                    break;
+
+                default:
+                    break;        
+            }
+
+            // Events, only supports one event per group for now
+            if (item.wait_spec && item.wait_spec._type == "TASK_WAIT")
+            {
+                const event = item.wait_spec.events[0];
+                newParent.setAttribute("TASK_WAIT", event._type);
+                if (event._type == "SYSTEM_NOTIFICATION")
+                {
+                    newParent.setAttribute("notification_type", event.notification_type);    
+                }
+                if (event._type == "TIMELINE_MOMENT")
+                {
+                    newParent.setAttribute("timeline_offset", event.timeline_offset);
+                    newParent.setAttribute("fixed_time", event.fixed_time.time);
+                }
+            }
+        }
+
+        if (item.members)
+        {
+            item.members.forEach(member => 
+            {
+                createPlanElemRecursively(newParent, member);
+            });            
+        }
+    }
+
+    const buildTaskPlanElem = function(parentNode, taskPlan)
+    {
+        const oldTaskPlanElem = document.getElementById(taskPlan.uid.value);
+        const sibling = (oldTaskPlanElem) ? oldTaskPlanElem.nextSibling : null;
+        if (oldTaskPlanElem) { parentNode.removeChild(oldTaskPlanElem); }
+        const name = (taskPlan.name.value) ? taskPlan.name.value : taskPlan.name;
+        const taskPlanElem = addElemWithLabel(
+            null, 
+            'div',
+            taskPlan.uid.value, 
+            taskPlan._type, 
+            name + " (" + taskPlan.principal_performer + ")");
+        
+        if (taskPlan.description) { addElem(taskPlanElem, 'div', null, 'tp-description', taskPlan.description); }
+
+        parentNode.insertBefore(taskPlanElem, sibling);
+        addJsonEditToggle(taskPlanElem, taskPlan);
+        createPlanElemRecursively(taskPlanElem, taskPlan.definition);        
+        DIPS.TPViewer.EnableGraphics(taskPlanElem);
+    }
+ 
+    const addJsonEditToggle = function(taskPlanElem, taskPlan)
+    {
+        const toggleJsonButton = addElem(taskPlanElem, 'button', 'TP-TOGGLE-' + taskPlan.uid.value, 'togglejson', 'Show / Hide JSON');        
+        toggleJsonButton.addEventListener('click', function(e){
+            const planUid = e.target.id.replace("TP-TOGGLE-","");
+            const jsonEditor = document.getElementById("TP-EDIT-" + planUid);
+            jsonEditor.style.display = jsonEditor.style.display === 'none' ? 'block' : 'none';
+        });
+
+        const jsonEditWrapper = addElem(taskPlanElem, 'div', 'TP-EDIT-' + taskPlan.uid.value, 'tp-edit');
+        jsonEditWrapper.style.display = 'none';
+
+        const jsonEditArea = addElem(jsonEditWrapper, 'textarea', 'TP-EDIT-AREA-' + taskPlan.uid.value, 'tp-edit-area', JSON.stringify(taskPlan, null, 2));
+        jsonEditArea.rows = 20;
+        jsonEditArea.cols = 100;
+        jsonEditArea.wrap = 'soft';
+
+        const updatePlanButton = addElem(jsonEditWrapper, 'button', null, 'updateplan', 'Update plan');        
+        updatePlanButton.addEventListener('click', function(e){           
+            const planUid = e.target.parentElement.id.replace("TP-EDIT-","");
+            const textArea = document.getElementById('TP-EDIT-AREA-' + planUid);            
+            const newTaskPlan = JSON.parse(textArea.value);
+            const oldTaskPlanElem = document.getElementById(planUid);
+            buildTaskPlanElem(oldTaskPlanElem.parentElement, newTaskPlan);
+        });
+    }
+
+    // Main region starts here
+
+    const tp = JSON.parse(json);
+    if (!tp){
+        return;
+    }
+    
+    DIPS.TPViewer.LoadedJSON.push(tp);    
+
+    const workPlan = tp[0];
+    const taskPlans = parseTaskPlans(tp);
+    const rootNode = document.getElementById("tp-root");
+
+    const oldWorkPlanElem = document.getElementById("WP_" + workPlan.plans[0].value);
+    if (rootNode.contains(oldWorkPlanElem)) {
+        rootNode.removeChild(oldWorkPlanElem);
+    }
+    const name = (workPlan.name.value) ? workPlan.name.value : workPlan.name;
+    const workPlanElem = addElem(
+        rootNode, 
+        'div',
+        "WP_" + workPlan.plans[0].value, 
+        workPlan._type, 
+        name);
+
+    workPlan.plans.forEach(uid => 
+    {
+        const taskPlan = taskPlans[uid.value]; 
+        buildTaskPlanElem(workPlanElem, taskPlan);
+    });
+}
+
+function loadFromTextArea(){
+    const jsonInput = document.getElementById('tp-input').value;
+    DIPS.TPViewer.Render(jsonInput);
+}
+
+function loadStoredPlans(){
+    
+    function loadJSON(filename, callback) {
+        const xobj = new XMLHttpRequest();
+        xobj.overrideMimeType("application/json");
+        xobj.open('GET', filename, true);
+        xobj.onreadystatechange = function () {
+            //if (xobj.readyState == 4 && xobj.status == "200") {
+            if (xobj.readyState == 4) {
+                // .open will NOT return a value but simply returns undefined in async mode so use a callback
+                callback(xobj.responseText);
+            }
+        }
+        xobj.send(null);
+    }
+
+    storedPlans.forEach(plan => {
+        console.log("Loading " + plan);
+        loadJSON(plan, DIPS.TPViewer.Render);
+    });
+}
+        </script>
+        <style>
+div {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-right: 0.5em;    
+    margin-left: 0;    
+    vertical-align: middle;
+    padding-right: 0.3em;
+    padding-left: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+div#tp-root
+{
+    overflow: auto;
+}
+div.WORK_PLAN 
+{
+    border: 1px solid black;
+    border-radius: 0.5em;
+    background-color: lightblue;
+    margin-bottom: 3em;
+    padding: 0.3em;
+}
+div.TASK_PLAN 
+{
+    border: 1px solid black;
+    border-radius: 0.5em;
+    background-color: lightcyan;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 0.3em;
+}
+div.TASK_GROUP,
+div.CONDITION_GROUP,
+div.CONDITION_BRANCH,
+div.DECISION_GROUP,
+div.DECISION_BRANCH,
+div.EVENT_GROUP,
+div.EVENT_BRANCH
+{
+    /*box-shadow:inset 0px 11px 1px -10px #000000, inset 0px -11px 1px -10px #000000;*/
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    display: inline-block;
+    margin-right: 0;
+    padding-left: 0.3em;
+    padding-right: 0.3em;
+}
+.parallel > div[class*='_WRAPPER']
+{
+    display: block;
+}
+.sequence > div[class*='_WRAPPER']
+{
+    display: inline-block;
+}
+div[class*='_WRAPPER']
+{
+    vertical-align: middle;
+    border:none;
+    margin:0;
+    padding-left: 0.3em;
+    padding-right: 0.3em;
+}
+div[class*='_TASK_WRAPPER']
+{
+    display: inline-block;
+}
+div[class*='_GROUP_WRAPPER']
+{
+    display: inline-block;
+}
+div[class*='_BRANCH_WRAPPER']
+{
+    display: block;
+}
+div.PERFORMABLE_TASK,
+div.DISPATCHABLE_TASK
+{
+    border: 1px solid black;
+    border-radius: 0.3em;
+    background-color: white;
+    display: inline-block;
+    min-height: 3em;
+    min-width: 6em;
+    text-align: center;
+    padding-left: 0.3em;
+    padding-right: 0.3em;
+}
+div.HAND_OFF
+{
+    background-color: palegreen;
+}
+canvas
+{
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-right: 0.5em;    
+    vertical-align: middle;
+    padding-right: 0;
+    padding-left: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+canvas.before
+{
+    display: inline-block;
+    margin-right: 0;
+}
+canvas.after
+{
+    display: inline-block;
+}
+div.canvaswrapper
+{
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+    vertical-align: middle;
+}
+textarea{
+    display: block;
+}
+.tooltip
+{
+    position:relative
+}
+.tooltip > .tooltip-content {
+    visibility: hidden;
+    background-color: lightyellow;
+    border: black solid 1px;
+    text-align: left;
+    padding: 3px;
+    border-radius: 6px;
+ 
+    /* Position the tooltip text */
+    top: 50%;
+    left: 108%;
+    transform: translateY(-50%);
+    position: absolute;
+    z-index: 1;
+}
+.tooltip:hover > .tooltip-content {
+    visibility: visible;
+}
+.tooltip-text
+{
+    color: grey;
+}
+button.togglejson
+{
+    display: block;
+}
+        </style>
+    </head>
+    <body onload="loadStoredPlans();">
+        <div id="tp-root"></div>
+        <button type="button" onclick="loadFromTextArea();">Load TP JSON</button>
+        <textarea rows="20" cols="100" id="tp-input"></textarea>        
+    </body>
+</html>
