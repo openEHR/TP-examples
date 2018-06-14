@@ -1,0 +1,245 @@
+archetype (adl_version=1.4; uid=d86f16e1-7be7-4b72-99aa-730392fc568b)
+    openEHR-EHR-TASK_PLAN.stroke_follow_up_ward.v0
+
+concept
+    [at0000]
+
+language
+    original_language = <[ISO_639-1::en]>
+
+description
+    original_author = <
+        ["date"] = <"2018-06-13">
+    >
+    lifecycle_state = <"unmanaged">
+    details = <
+        ["en"] = <
+            language = <[ISO_639-1::en]>
+            purpose = <"Exploring how to model the follow up of stroke patient at admission. ">
+            keywords = <"stroke", ...>
+            use = <"To test and implement task designer, planner and engine">
+            misuse = <"Do not use for production">
+        >
+    >
+    other_details = <
+        ["licence"] = <"This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.">
+        ["custodian_organisation"] = <"openEHR Foundation">
+        ["original_namespace"] = <"org.openehr">
+        ["original_publisher"] = <"openEHR Foundation">
+        ["custodian_namespace"] = <"org.openehr">
+        ["MD5-CAM-1.0.1"] = <"ed928f299c4a7af036ff5aff3a176518">
+        ["build_uid"] = <"59c8d027-a152-39c3-aeea-7e9a9d82e1c5">
+    >
+
+definition
+    TASK_PLAN[at0000] matches {
+        best_practice_ref matches {
+            DV_URI[at0001] matches {
+                value matches {/https://github.com/bjornna/TP-examples/blob/master/13-stroke/master.adoc/}
+            }
+        }
+        principal_performer matches {
+            TASK_PARTICIPATION[at0002] matches {
+                role cardinality matches {0..*; unordered} matches {
+                    DV_CODED_TEXT[at0003] occurrences matches {0..1} matches {
+                        defining_code matches {
+                            [local::at0004]
+                        }
+                    }
+                }
+            }
+        }
+        definition matches {
+            TASK_GROUP[at0005] matches {
+                members cardinality matches {0..*; unordered} matches {
+                    TASK_GROUP[at0006] occurrences matches {0..1} matches {
+                        members cardinality matches {0..*; unordered} matches {
+                            PERFORMABLE_TASK[at0007] occurrences matches {0..1} matches {
+                                capture_dataset cardinality matches {0..*; unordered} matches {
+                                    DATASET_SPEC[at0009] occurrences matches {0..1} matches {
+                                        form_id matches {"MRS_Screening_First_Day.v1.0.0"}
+                                        template_id matches {"MRS_Screening.v1"}
+                                    }
+                                }
+                            }
+                            PERFORMABLE_TASK[at0008] occurrences matches {0..1} matches {
+                                action matches {
+                                    PERFORMABLE_ACTION[at0010] matches {
+                                        resources cardinality matches {0..*; unordered} matches {
+                                            RESOURCE_PARTICIPATION[at0011] occurrences matches {0..1} matches {
+                                                resource_type matches {
+                                                    DV_CODED_TEXT[at0012] matches {
+                                                        defining_code matches {
+                                                            [local::
+                                                            at0013,
+                                                            at0014]
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                capture_dataset cardinality matches {0..*; unordered} matches {
+                                    DATASET_SPEC[at0015] occurrences matches {0..1} matches {
+                                        form_id matches {"Swallow_Test_Screening.v1.2.5"}
+                                        template_id matches {"Swallow_Test_Norway.v1"}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    TASK_GROUP[at0016] occurrences matches {0..1} matches {
+                        members cardinality matches {0..*; unordered} matches {
+                            PERFORMABLE_TASK[at0017] occurrences matches {0..1} matches {
+                                capture_dataset cardinality matches {0..*; unordered} matches {
+                                    DATASET_SPEC[at0018] occurrences matches {0..1} matches {
+                                        form_id matches {"NIHSS.Score.v1.0.0"}
+                                        template_id matches {"NIHSS.Score"}
+                                    }
+                                }
+                                action matches {
+                                    DEFINED_ACTION[at0019] matches {*}
+                                }
+                            }
+                            PERFORMABLE_TASK[at0020] occurrences matches {0..1} matches {
+                                capture_dataset cardinality matches {0..*; unordered} matches {
+                                    DATASET_SPEC[at0021] occurrences matches {0..1} matches {
+                                        form_id matches {"Barthel.Score.v1.0.0"}
+                                        template_id matches {"BarthelScore"}
+                                    }
+                                }
+                            }
+                        }
+                        wait_spec matches {
+                            TASK_WAIT[at0022] matches {
+                                events cardinality matches {0..*; unordered} matches {
+                                    TIMELINE_MOMENT[at0023] occurrences matches {0..1} matches {
+                                        timeline_offset matches {
+                                            IDuration[at0024] matches {*}
+                                        }
+                                        fixed_time matches {
+                                            CLOCK_TIME[at0025] matches {*}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+ontology
+    term_definitions = <
+        ["en"] = <
+            items = <
+                ["at0000"] = <
+                    text = <"Stroke follow up on ward">
+                    description = <"stroke_follow_up_ward">
+                >
+                ["at0001"] = <
+                    text = <"DV_URI">
+                    description = <"*">
+                >
+                ["at0002"] = <
+                    text = <"TASK_PARTICIPATION">
+                    description = <"*">
+                >
+                ["at0003"] = <
+                    text = <"DV_TEXT">
+                    description = <"*">
+                >
+                ["at0004"] = <
+                    text = <"NURSE_ON_DUTY">
+                    description = <"The nurse on duty">
+                >
+                ["at0005"] = <
+                    text = <"definition_task_group">
+                    description = <"*">
+                >
+                ["at0006"] = <
+                    text = <"Admission day tasks">
+                    description = <"Screening tasks to be performed on the day of admission">
+                >
+                ["at0007"] = <
+                    text = <"mRS at admission">
+                    description = <"Visit patient at bed at perform mRS">
+                >
+                ["at0008"] = <
+                    text = <"Swallow test">
+                    description = <"*">
+                >
+                ["at0009"] = <
+                    text = <"DATASET_SPEC">
+                    description = <"Associated data-set template and/or form via which data to be captured during this Task will actually be entered.">
+                >
+                ["at0010"] = <
+                    text = <"PERFORMABLE_ACTION">
+                    description = <"*">
+                >
+                ["at0011"] = <
+                    text = <"RESOURCE_PARTICIPATION">
+                    description = <"*">
+                >
+                ["at0012"] = <
+                    text = <"Needed resources">
+                    description = <"*">
+                >
+                ["at0013"] = <
+                    text = <"Spoon">
+                    description = <"A spoon of steel">
+                >
+                ["at0014"] = <
+                    text = <"Glas of ice cold water">
+                    description = <"A glass of ice-cold water">
+                >
+                ["at0015"] = <
+                    text = <"DATASET_SPEC">
+                    description = <"*">
+                >
+                ["at0016"] = <
+                    text = <"Day 1 tasks">
+                    description = <"The tasks to be performed on day one of the stay ">
+                >
+                ["at0017"] = <
+                    text = <"NIHSS">
+                    description = <"*">
+                >
+                ["at0018"] = <
+                    text = <"DATASET_SPEC">
+                    description = <"*">
+                >
+                ["at0019"] = <
+                    text = <"DEFINED_ACTION">
+                    description = <"It's mandatory. Seems to be a BUG in designer - I am not allowed to set mandatory
+">
+                >
+                ["at0020"] = <
+                    text = <"Barthel score">
+                    description = <"*">
+                >
+                ["at0021"] = <
+                    text = <"DATASET_SPEC">
+                    description = <"*">
+                >
+                ["at0022"] = <
+                    text = <"TASK_WAIT">
+                    description = <"*">
+                >
+                ["at0023"] = <
+                    text = <"TIMELINE_MOMENT">
+                    description = <"*">
+                >
+                ["at0024"] = <
+                    text = <"IDuration">
+                    description = <"The task should be activated after one day">
+                >
+                ["at0025"] = <
+                    text = <"CLOCK_TIME">
+                    description = <"I should be able to specify that this should happen after 08:00">
+                >
+            >
+        >
+    >

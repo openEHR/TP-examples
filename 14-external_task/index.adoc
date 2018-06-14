@@ -1,0 +1,5 @@
+= External worktask 
+
+== Background 
+This is a technical example written to explore how to invoke an external service. The external service is DIPS Arena Worktasks. 
+
