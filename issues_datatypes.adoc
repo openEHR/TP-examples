@@ -74,4 +74,15 @@ select tm/timeline_offset/value from COMPOSITION c contains TIMELINE_MOMENT tm
 ----
   "P3Y6M4DT12H30M0S"
 ----
- 
+
+
+
+
+.Example on seralized class 
+[source,json]
+----
+"timeline_offset": {
+    "_type": "Iso8601Duration",
+    "value": "P18DT23H1M53.064S"
+  }
+----
