@@ -52,13 +52,13 @@ There are several possible serializations of this:
 .ALT-1 Type Iso8601Duration
 [source,json]
 ----
-{_type: "Iso8601Duration", value: "P3Y6M4DT12H30M0S"}
+{_type: "Iso8601Duration", value: "P18DT23H1M53.064S"}
 ----
 
 .ALT-2 Type IDuration 
 [source,json]
 ----
-{_type: "IDuration", value: "P3Y6M4DT12H30M0S"} 
+{_type: "IDuration", value: "P18DT23H1M53.064S"} 
 ----
 
 WARNING: ALT-2 is not allowed. The type of instances MUST be concrete types. 
@@ -72,7 +72,7 @@ select tm/timeline_offset/value from COMPOSITION c contains TIMELINE_MOMENT tm
 
 [source,json]
 ----
-  "P3Y6M4DT12H30M0S"
+  "P18DT23H1M53.064S"
 ----
 
 
