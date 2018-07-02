@@ -11,6 +11,17 @@ Version log on this issue:
 |1 | 2.juli 2018| Bjørn Næss |Initial writing 
 |==== 
 
+== The change requests 
+To make it simple for the reader - we will start with the proposed changes. Then the next of the note will be to describe reasoning behind. 
+
+Proposed changes in the specification: 
+
+1. CALLBACK_NOTIFICATION must be changed to be able to express what kind of notification it is. +
+It needs to be able to capture the expected transition and possible some messages from the external system.
+
+2. Introduce an ERROR state + 
+To handle all system failures like failure response from external system, timeout, exception when invoking external API. 
+
 == Background 
 Performing a system request might be performed synchronized or asynchronized. After the system call is performed the engine will wait for a event which defines the outcome for the request. 
 
@@ -22,14 +33,6 @@ The image below illustrate such an example with the classes and attributes invol
 .Callback pattern for SYSTEM_REQUETS
 image::tp_system_request_callback_pattern.svg[]
 
-
-== Proposed change 
-
-1. CALLBACK_NOTIFICATION must be changed to be able to express what kind of notification it is. +
-It needs to be able to capture the expected transition and possible some messages from the external system. 
-
-2. Introduce an ERROR state + 
-To handle all system failures like failure response from external system, timeout, exception when invoking external API. 
 
 == Execution log  
 Below is a JSON structure to define a pseudo-log of what happens during execution of such a PLAN. The purpose of the log is to tell. 
@@ -99,8 +102,9 @@ The external system where not able to process the request and makes an error rep
 The external system didn't respond within the given timeframe
 
 
+=== Success
 
-=== The happy case 
+==== The happy case 
 
 [source,json]
 ----
@@ -121,7 +125,7 @@ The external system didn't respond within the given timeframe
         }
 ----
 
-=== Other transitions 
+==== Other transitions 
 
 [source,json]
 ----
@@ -141,7 +145,11 @@ The external system didn't respond within the given timeframe
         }
 ----
 
-=== Failure 
+=== Failure and timeout 
+TIP: Look at the state for Task-A after a failure. It is set to ERROR since the engine have no way to define an ERROR state which is not clinical. 
+
+==== Failure 
+
 
 [source,json]
 ----
@@ -156,7 +164,9 @@ The external system didn't respond within the given timeframe
         }
 ----
 
-=== Timeout 
+==== Timeout 
+
+
 [source,json]
 ----
 {
