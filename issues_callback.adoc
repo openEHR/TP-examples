@@ -1,0 +1,192 @@
+= Callback Notification 
+
+== Background 
+The use-case to illustrate the problem is a TASK_PLAN where the first (and only) TASK is a SYSTEM_REQUEST to a scheduling system. The system request is there to make sure that the patient gets an appointment. It is expected that the scheduling system has it's own workflow to handle this kind of requests. 
+
+Version log on this issue: 
+
+[options="header"]
+|====
+|Version | Date | Author | Description
+|1 | 2.juli 2018| Bjørn Næss |Initial writing 
+|==== 
+
+
+== Execution log  
+Below is a JSON structure to define a pseudo-log of what happens during execution of such a PLAN. The purpose of the log is to tell: 
+
+[horizontal]
+time:: When it happended 
+event:: What kind of external/internal event triggered the action 
+action:: The action that the TP engine performs based on the event 
+state:: The state after the execution of the action 
+
+
+
+[source, json]
+----
+{
+    "use-case": "Workplan with system request to scheduling suite",
+    "event_log": [
+
+        {
+            "time": "T0",
+            "event": "Enginge receives a COMPOSITION with WORKPLAN and TASK_PLAN",
+            "action": "Materialize plan",
+            "state": {
+                "SCHEDULE": "initial",
+                "WORKPLAN": "materialized"
+            }
+        }, {
+            "time": "T1",
+            "event": "Client activate PLAN",
+            "action": "Activate plant",
+            "state": {
+                "SCHEDULE": "available",
+                "WORKPLAN": "active"
+
+            }
+        },
+        {
+            "time": "T2",
+            "event": "SYSTEM_REQUEST SCHEDULE is available",
+            "action": "Make system-request",
+            "system_request": {
+                "method": "NEW_APPOINTMENT",
+                "task_id": "ABCD"
+            },
+            "state":{
+                "SCHEDULE":"underway", 
+                "WORKPLAN": "active"
+            }
+        }
+----
+
+== Possible outcomes of the request 
+
+Now the engine is waiting for the external system (the scheduling system). There will be several possible outcomes of the external operation: 
+
+1. Happy case! + 
+The external system and it's users finishes the given task. 
+2. Other transitions + 
+The external system is not able to finish the task and performed another legal transition on the task 
+3. Failure + 
+The external system where not able to process the request and makes an error report back 
+4. Timeout + 
+The external system didn't respond within the given timeframe
+
+
+=== The happy case 
+
+[source,json]
+----
+		{
+            "time":"T3.1 Happy-case", 
+            "event":"Engine receives callback about finished task", 
+            "event_callback_on_rest_api": {
+                "REST_PATH": "/task/{task_id}",
+                "task_id": "ABCD", 
+                "transition": "finished"
+            },
+            "action":"Set SCHEDULE to completed", 
+            "state":{
+                "SCHEDULE": "completed", 
+                "WORKPLAN": "materialized"
+            }
+
+        }
+----
+
+=== Other transitions 
+
+[source,json]
+----
+        {
+            "time":"T3.2 Other-transition", 
+            "event":"Engine receives not finished transition", 
+            "event_callback_on_rest_api": {
+                "REST_PATH":"/task/{task_id}", 
+                "task_id":"ABCD", 
+                "transition": "Possible values -> suspend|cant_complete|resume|not_needed"
+            }, 
+            "action": "Update SCHEDULE with given transition - here not_needed", 
+            "state": {
+                "SCHEDULE": "cancelled", 
+                "WORKPLAN": "terminated"
+            }
+        }
+----
+
+=== Failure 
+
+[source,json]
+----
+{
+            "time":"T3.3 Failure in external system", 
+            "event":"External system where not able to process SYSTEM_REQUEST", 
+            "action":"Some undefined failure in callback???? ", 
+            "state": {
+                "SCHEDULE": "??????? ", 
+                "WORKPLAN": "active"
+            }
+        }
+----
+
+=== Timeout 
+[source,json]
+----
+{
+            "time": "T3.4 Timeout",
+            "event":"Engine notifies timeout on SCHEDULE TASK", 
+            "action": "update SCHEDULE with timeout", 
+            "state": {
+                "SCHEDULE": "??????", 
+                "WORKPLAN": "active"
+            }
+        }
+
+    ]
+}
+----
+
+
+== Proposed change 
+
+1. Make DISPATCHABLE_TASK.callback_wait an array. This makes it possible to define action depending on the callback types. 
+
+2. Remove fail_action to action because it now only defines the action on the given event. 
+
+Below is a pseudo instance of such an instance. 
+
+[source, json]
+----
+{
+    "DISPATCHABLE_TASK": {
+        "action": {
+            "_type": "SYSTEM_REQUEST",
+            "system_call": {
+                "system_id": "SCHEDULING_SYSTEM",
+                "call_name": "NEW_APPOINTMENT",
+                "parameter_map": "<some data to be sent along with the request"
+            }
+        },
+        "callback_wait": [{
+            "event": {
+                "transition": "cant_complete"
+            },
+            "action": "START HAND_OFF to XYZ"
+        }, {
+            "event": {
+                "transition": "finished"
+            },
+            "action": "complete_task"
+        }]
+        
+    }
+}
+----
+
+SYSTEM_CALL:: http://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_system_call_class[]
+
+
+image::http://www.openehr.org/releases/PROC/latest/docs/UML/diagrams/PROC-TaskStateMachine.svg[]
