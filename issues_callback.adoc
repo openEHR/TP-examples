@@ -1,20 +1,42 @@
-= Callback Notification 
+:imagesdir: images
+= System_Request and Callback Notification 
 
-== Background 
-The use-case to illustrate the problem is a TASK_PLAN where the first (and only) TASK is a SYSTEM_REQUEST to a scheduling system. The system request is there to make sure that the patient gets an appointment. It is expected that the scheduling system has it's own workflow to handle this kind of requests. 
-
+== About 
 Version log on this issue: 
 
 [options="header"]
 |====
 |Version | Date | Author | Description
+|2 | 2.juli 2018| Bjørn Næss |Update on issue with an illustration
 |1 | 2.juli 2018| Bjørn Næss |Initial writing 
 |==== 
 
+== Background 
+Performing a system request might be performed synchronized or asynchronized. After the system call is performed the engine will wait for a event which defines the outcome for the request. 
+
+The specification defines that the event to wait for is a CALLBACK_NOTIFICATION. CALLBACK_NOTIFICATION is an _"event generated on receipt of notification of completion of a Dispatchable Task"_. The definition of the attribute in CALLBACK_WAIT is a  _"callback notification on which this Callback wait state is based"_. 
+
+The image below illustrate such an example with the classes and attributes involved. In this note we will follow a use case with a SYSTEM_REQUEST to a scheduling system. The method to be invoked in the SCHEDULING system is NEWAPPOINTMENT. The expected result is that the appointment is made. 
+
+
+.Callback pattern for SYSTEM_REQUETS
+image::tp_system_request_callback_pattern.svg[]
+
+
+== Proposed change 
+
+1. CALLBACK_NOTIFICATION must be changed to be able to express what kind of notification it is. +
+It needs to be able to capture the expected transition and possible some messages from the external system. 
+
+2. Introduce an ERROR state + 
+To handle all system failures like failure response from external system, timeout, exception when invoking external API. 
 
 == Execution log  
-Below is a JSON structure to define a pseudo-log of what happens during execution of such a PLAN. The purpose of the log is to tell: 
+Below is a JSON structure to define a pseudo-log of what happens during execution of such a PLAN. The purpose of the log is to tell. 
 
+WARNING: The JSON is NOT of any RM Type - the only purpose is to write out a fictive execution log. 
+
+.Definition of the attributes
 [horizontal]
 time:: When it happended 
 event:: What kind of external/internal event triggered the action 
@@ -34,7 +56,7 @@ state:: The state after the execution of the action
             "event": "Enginge receives a COMPOSITION with WORKPLAN and TASK_PLAN",
             "action": "Materialize plan",
             "state": {
-                "SCHEDULE": "initial",
+                "Task-A": "initial",
                 "WORKPLAN": "materialized"
             }
         }, {
@@ -42,7 +64,7 @@ state:: The state after the execution of the action
             "event": "Client activate PLAN",
             "action": "Activate plant",
             "state": {
-                "SCHEDULE": "available",
+                "Task-A": "available",
                 "WORKPLAN": "active"
 
             }
@@ -52,11 +74,12 @@ state:: The state after the execution of the action
             "event": "SYSTEM_REQUEST SCHEDULE is available",
             "action": "Make system-request",
             "system_request": {
+				"system_id": "SCHEDULING", 
                 "method": "NEW_APPOINTMENT",
-                "task_id": "ABCD"
+                "task_id": "Task-A"
             },
             "state":{
-                "SCHEDULE":"underway", 
+                "Task-A":"underway", 
                 "WORKPLAN": "active"
             }
         }
@@ -76,6 +99,7 @@ The external system where not able to process the request and makes an error rep
 The external system didn't respond within the given timeframe
 
 
+
 === The happy case 
 
 [source,json]
@@ -85,12 +109,12 @@ The external system didn't respond within the given timeframe
             "event":"Engine receives callback about finished task", 
             "event_callback_on_rest_api": {
                 "REST_PATH": "/task/{task_id}",
-                "task_id": "ABCD", 
+                "task_id": "Task-A", 
                 "transition": "finished"
             },
             "action":"Set SCHEDULE to completed", 
             "state":{
-                "SCHEDULE": "completed", 
+                "Task-A": "completed", 
                 "WORKPLAN": "materialized"
             }
 
@@ -106,12 +130,12 @@ The external system didn't respond within the given timeframe
             "event":"Engine receives not finished transition", 
             "event_callback_on_rest_api": {
                 "REST_PATH":"/task/{task_id}", 
-                "task_id":"ABCD", 
+                "task_id":"Task-A", 
                 "transition": "Possible values -> suspend|cant_complete|resume|not_needed"
             }, 
             "action": "Update SCHEDULE with given transition - here not_needed", 
             "state": {
-                "SCHEDULE": "cancelled", 
+                "Task-A": "cancelled", 
                 "WORKPLAN": "terminated"
             }
         }
@@ -126,7 +150,7 @@ The external system didn't respond within the given timeframe
             "event":"External system where not able to process SYSTEM_REQUEST", 
             "action":"Some undefined failure in callback???? ", 
             "state": {
-                "SCHEDULE": "??????? ", 
+                "Task-A": "ERROR", 
                 "WORKPLAN": "active"
             }
         }
@@ -140,7 +164,7 @@ The external system didn't respond within the given timeframe
             "event":"Engine notifies timeout on SCHEDULE TASK", 
             "action": "update SCHEDULE with timeout", 
             "state": {
-                "SCHEDULE": "??????", 
+                "Task-A": "ERROR", 
                 "WORKPLAN": "active"
             }
         }
@@ -149,44 +173,42 @@ The external system didn't respond within the given timeframe
 }
 ----
 
+== More about CALLBACK_NOTICICATION 
 
-== Proposed change 
+CALLBACK_NOTIFICATION inherit from PLAN_EVENT. There are several classes which inherit from PLAN_EVENT as shown in the image below. The events are described here: http://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_event_types[] 
 
-1. Make DISPATCHABLE_TASK.callback_wait an array. This makes it possible to define action depending on the callback types. 
+Below I have picked some which might be of interest for SYSTEM_REQUEST. For the usage with SYSTEM_REQUEST I think both _TASK_TRANSITION_ and _SYSTEM_NOTIFICATION_ might be used. 
 
-2. Remove fail_action to action because it now only defines the action on the given event. 
 
-Below is a pseudo instance of such an instance. 
+. *CALLBACK_NOTIFICATION*: a callback notification connected to a dispatch call for a Dispatchable Task (Hand-off, External Request, System Request);
+. *TASK_TRANSITION*: an event corresponding to a lifecycle transition of a Task, such as being cancelled or done;
+. *SYSTEM_NOTIFICATION*: an event that is notified to the Plan execution engine by a system or service;
 
-[source, json]
-----
-{
-    "DISPATCHABLE_TASK": {
-        "action": {
-            "_type": "SYSTEM_REQUEST",
-            "system_call": {
-                "system_id": "SCHEDULING_SYSTEM",
-                "call_name": "NEW_APPOINTMENT",
-                "parameter_map": "<some data to be sent along with the request"
-            }
-        },
-        "callback_wait": [{
-            "event": {
-                "transition": "cant_complete"
-            },
-            "action": "START HAND_OFF to XYZ"
-        }, {
-            "event": {
-                "transition": "finished"
-            },
-            "action": "complete_task"
-        }]
-        
-    }
-}
-----
+
+
+
+== Illustrations abd references 
+
+.Callback Patterns 
+http://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_callback_patterns[] 
+
+.State machine
+image::http://www.openehr.org/releases/PROC/latest/docs/UML/diagrams/PROC-TaskStateMachine.svg[]
+
+.Events 
+image::http://www.openehr.org/releases/PROC/latest/docs/UML/diagrams/PROC-task_planning.definition-event.svg[]
+
 
 SYSTEM_CALL:: http://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_system_call_class[]
 
 
-image::http://www.openehr.org/releases/PROC/latest/docs/UML/diagrams/PROC-TaskStateMachine.svg[]
+EVENT_ACTION :: 
+http://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_event_action_class +
+Action(s) to perform on receipt of an event with a particular status. If resume_action is set, it dictates where execution resumes; if not, the default is to resume at the next Task in normal execution flow.
+
+
+RESUME_ACTION :: 
+http://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_resume_action_class +
+Type representing an execution jump to a new location in the current Plan.
+
+
