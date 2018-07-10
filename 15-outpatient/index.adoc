@@ -1,0 +1,206 @@
+:imagesdir: images
+[[modelling_patterns]]
+= Hip Outpatient Clinic 
+
+== The use-case
+
+Given a patient with increasing pain from the left hip. He is referred to his hospital. The receiving healthcare provider accepts the referral and have to decide what kind of treatment or follow-up should be made. In this use-case the clinican decides to follow up the patient with an outpatient consultation. The purpose of this consultation is to _evaulate further treatment for the patient with HIP pain and the expected outcome is hip replacement_ . 
+
+The consultation need some data about the patient. The clinican request the following services to be performed before the consultation: 
+
+[horizontal]
+RAD::  X-ray of hip 
+SELF:: Self evaluation by the patient on the activity of daily living, pain, function, etc. 
+
+
+Now the clinican is satisfied. The requested services are radiology, self evaluation and a consultation with herself. She commits the request and expect the coordinator to set up the detailed workplan to make this happen. 
+
+.The intended plan from the clinician
+image::hip_workplan_pattern_draw-Stage01.svg[]
+
+
+There are three activities in the plan. Each of the activities will be performed by different actors. In openEHR Task Planning this is a WORK_PLAN with three (3) TASK_PLANS. To simplify the use-case we define that each task plan has two tasks, DO and REPORT. Based on this the plan can be illustrated as the image below: 
+
+image::hip_workplan_pattern_draw-Stage02.svg[]
+
+When the plan is commited to the TP engine the following state will be materialised. 
+
+[options="header"]
+|====
+|Type 		| Id		| State		
+|task_plan 	| RAD      	| available	
+|task_plan 	| SELF 		| avilable	
+|task_plan 	| OUT		| available	
+|work_plan 	| HIP_EVAL 	| active	
+|====
+
+Everything ok? +
+We have a few problems here. Let's work them out. 
+
+. We have not expressed that radiology (RAD) and the self evaluation (SELF) should be performed before the consultation (OUT). 
+. Should the RAD and OUT activities be performed at the same day and at the same meeting at the hospital?
+. How long before OUT must RAD start to be finished? 
+. How to start the SELF activity? +
+Is it a paper form to be sent to the patient? +
+Is it some portal/app the patient should be invited to? 
+. We have not expressed when the DO task for all plans should be activated.  
+. The patient have to pay for both RAD and POL 
+
+We need some more detailed planning to make the plan express the intention by the clinician and the health care provider. We need the _coordinator_. The coordinator has an important role to coordinate all the resources needed to perform the right activities at the right time. This involves a more detailed planning process. The coordinator have to do the following activites: 
+
+* Make appointment for the outpatient clinic 
+* Request radiology 
+* Make appointment for radiology 
+* Inform patient about the attendance at both RAD and OUT 
+* Inform patient on how to do SELF 
+* Make sure that patient have done SELF before OUT 
+* Add the relationships between task to tell the engine when to activate them. 
+
+When the coordinator have done this we have expresed the following items in the plan: 
+
+[options="header"]
+|====
+|Who | What | Why 
+|Patient   		| Attend to RAD 
+| Radiograper need to know when to call in the patient. 
+
+|Patient 		| Attend to OUT
+|The doctor need to know if he can call in and start the consultation (or if she should do other tasks) 
+
+|Patient		| Attend to contact (hospital) 
+|The health care provider know that the patient "is in the building"
+
+|Patient 		| Payment is made POL
+|
+
+|Patient | Payment is made for RAD 
+|====
+
+The coordinator adds some tasks to the plans and the resulting TASK_PLANS looks like the image below. 
+
+.The workplan after coordination 
+image::hip_workplan_pattern_draw-Stage03.svg[]
+
+Looking at the plan we still don't know the relationships between the activities and tasks. To visualise them we need to draw this another way. 
+
+.Tasks in workplan with relationships 
+image::hip_workplan_pattern_draw-Stage04.svg[]
+
+
+
+Finally the plan is ready to be activated. The TP engine materialise the plans and the execution clients can start processing the plan using the REST_API. The image below illustrate how the patient might use the API to 
+
+. List all open (planned/available) ATTENDANCE tasks 
+. Select one of them to make the transition to DONE 
+. List all open (planned/available) PAYMENT tasks 
+
+.Plan illustrated with REST_API usage
+image::hip_workplan_pattern_draw-Stage05.svg[]
+
+Users at the surgical department will use the running task plans to query for the next tasks to perform. Their focus will be to pick the next available task from a lot of parallell task plans. This is illustrated in the image below. Completed tasks are drawn with a grey background and the green ones are the available tasks. 
+
+.Surgical department queries for the next available tasks 
+image::hip_workplan_pattern_draw-OUT_Next_01.svg[]
+
+== Some open topics 
+
+=== Attendance 
+In the plan we model attendance as seprate tasks. They are in the plan to be able to know when the patient has arrived and is available for the next task. This is also the task which will hold information about when to attend. I.e. "RAD appointment 20.july at 10:00. RAD department left building, second floor". 
+
+The attendance task may have timing callbacks. I.e. Make the task available 24 hours before the appointment. When the task is made available send an SMS to the Patient to inform about the possibility to "check-in". 
+
+We discussed if the attendance task should be in a separate task plan where the patient is the primary performer. The current solution where the attendance is tied to the service performed where chosen of several reasons: 
+
+. It doesn't mather who makes the event entry that patient arrived. Anyone who meets the patient (clinician, administrative) might do this. If the hospital provides self-check in by some portal or kiosk the patient might himself do this. This makes it natural to say that since the attendance on POL is relevant for one task in the POL task plan, then the attendance task should be added here. 
+
+=== Multiple pre-conditions 
+The POL.DO task have 3 incoming arrows. It is planned but are waiting for three different tasks to be completed to get available. 
+
+The transition from ATTEND_OUT to DO is taken care of by the task plan. To model the dependency to SELF.REPORT and RAD.REPORT we need to use preconditions on the task. This is what is shown in the image like: 
+
+[source,json]
+----
+[
+	"RAD.REPORT == COMPLETED" ,
+	"SELF.REPORT == COMPLETED"
+]
+----
+
+NOTE: We need a shared way to express this. 
+
+=== Model RAD, LAB and SELF in one episode 
+One of the design ideas of openEHR task planning was to be able to https://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_rationalising_unrelated_task_plans[rationalising unrelated task plans] and also to support https://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_teamwork_and_notifications[team work and notifications]. The use-case given here, outpatient hip consulatation coordinated to one visit, illustrates the need for such a construct. If we further add a task plan for some lab analysis (LAB). And then we add some requirements that the LAB, RAD and the OUT is coordinatet to the same visit at the hospita. Then we end up with a  "standard" outpatient visit. There are several reasons for organising the services in such a way. The results from LAB and RAD will be up to date. The patient only have to travel to hospital once. 
+
+We can add some more requirements into the use-case. Let's say the hospital have experienced that quite a lot of the patients are not able to finish the SELF registration. The SELF reported data is important for the doctor. To make the consultation with the doctor more effective the hospital have decided that all patients will have a talk with a physiotherapist (PHYS) about the SELF data before the consultation with doctor. 
+
+In sum we have three taskplans with tasks that need to be done before the consulation with the doctor is made available. The three taskplans all wait for the patient to attend to the outpatient visit. The image below illustrates this. 
+
+.A more complex and realistic outpatient visit
+image::hip_workplan_pattern_draw-OUT-SELF-LAB-RAD-Contact.svg[]
+
+To support the flow we need a  way to tell that the attendance to RAD, LAB and PHYS is dependant on the attendance to the hospital. 
+
+.The dependency between tasks
+[source,ascii]
+----
+                |-- RAD.ATTEND  --> RAD.DO   --|
+VISIT.ATTEND  --|-- LAB.ATTEND  --> LAB.DO   --|-- OUT.ATTEND
+                |-- PHYS.ATTEND --> PHYS.DO  --|
+----
+
+If we where to draw the whole plan as one task plan it could look like the image below. This is a compact and precise illustration of the expected flow for the patient. But this is not wanted since we don't want to change the original task plans to coordinate a plan where the 3 plans are exectued on the same day at the same visit. So how can we model this using the task planning classes? Are we able to model this? Do we want to model this? 
+
+.The tasks for an outpatient visit
+image::hip_workplan_pattern_draw-OUT-SELF-LAB-RAD-PLAN.svg[]
+
+
+==== The metaplan approach
+
+One approach may be to model the outpatient visit plan as an overlay over existing and running plans. This would be some kind of a metaplan which only had references to other tasks. This metaplan could: 
+
+. Be visualised by query the state of existing tasks
+. Add events that made transitions on the referenced tasks. 
+
+A pseudo definition of such a plan is given below. The intersting part is the first member of _VISIT.ATTEND_ which is a reference to the existing task in RAD task plan. There is a event definition on this member. When it gets available also set the referenced item into state available. 
+
+[source, json]
+----
+{
+  "plan": "Outpatient Visit - metaplan", 
+  "items": [
+  		"_type": "PERFORMABLE_TASK",
+		"id": "VISIT.ATTEND", 
+		"members":[
+			"_type": "REF", 
+			"ref": "RAB.ATTEND", 
+			"onActivated": "ref.state => available"
+		]
+  
+  ]
+}
+----
+
+[[terms]]
+== Terms 
+
+Service:: Is a computable definition of a medical service to be performed by a health care provider. 
+Plan:: Defines how to perform a given service. 
+
+Put another way we say that: 
+
+****
+A `service` defines *WHAT* to do. +
+A `plan` defines *HOW* to to id. 
+****
+
+[[roles]]
+== Roles 
+There are several roles involved in different phases of the task planning process. 
+
+Analyst:: The person analysing the workflow in the organisation and write out the narrative definition of the processes to be designed, planned and executed. The work done by this user might not involve any specific task planning tools. 
+Designer:: The person that creates the clinical modelling elements to be used by the planner. 
+Planner:: The person who defines which services to perform to reach the goal. 
+Coordinator:: The person that work out the details (coordinate) the instructions/initial plans from the planner. The coordinator activates the workplan. 
+Executor:: When the plan is activated the executor will work on the plan instance performing the tasks at hand. 
+Engine:: The engine is the software service which drives the planned processes ahead by listening on events and defining the transititions to be made. 
+
