@@ -2,6 +2,9 @@
 [[modelling_patterns]]
 = Hip Outpatient Clinic 
 
+== Purpose 
+This example is a common outpatient consulatation. The note is written to elucidate some issues for planning and conducting outpatient consultation with a doctor. The example is not complete. At the same time, a few common elements are included for carrying out such activity.
+
 == The use-case
 
 Given a patient with increasing pain from the left hip. He is referred to his hospital. The receiving healthcare provider accepts the referral and have to decide what kind of treatment or follow-up should be made. In this use-case the clinican decides to follow up the patient with an outpatient consultation. The purpose of this consultation is to _evaulate further treatment for the patient with HIP pain and the expected outcome is hip replacement_ . 
@@ -21,36 +24,38 @@ image::hip_workplan_pattern_draw-Stage01.svg[]
 
 There are three activities in the plan. Each of the activities will be performed by different actors. In openEHR Task Planning this is a WORK_PLAN with three (3) TASK_PLANS. To simplify the use-case we define that each task plan has two tasks, DO and REPORT. Based on this the plan can be illustrated as the image below: 
 
+.Initial task planning model with separate plans for each performer.
 image::hip_workplan_pattern_draw-Stage02.svg[]
 
-When the plan is commited to the TP engine the following state will be materialised. 
+When the plan is commited to the TP engine the following state will be materialised and activated. 
 
+.State after activation of the initial task planning
 [options="header"]
 |====
 |Type 		| Id		| State		
 |task_plan 	| RAD      	| available	
-|task_plan 	| SELF 		| avilable	
+|task_plan 	| SELF 		| available	
 |task_plan 	| OUT		| available	
 |work_plan 	| HIP_EVAL 	| active	
 |====
 
-Everything ok? +
-We have a few problems here. Let's work them out. 
 
-. We have not expressed that radiology (RAD) and the self evaluation (SELF) should be performed before the consultation (OUT). 
+There is a few issues we have not yet dealed with: 
+
+. We have not expressed that radiology (RAD) and the self evaluation (SELF) should be performed before the consultation with doctor (OUT). 
 . Should the RAD and OUT activities be performed at the same day and at the same meeting at the hospital?
 . How long before OUT must RAD start to be finished? 
 . How to start the SELF activity? +
 Is it a paper form to be sent to the patient? +
 Is it some portal/app the patient should be invited to? 
 . We have not expressed when the DO task for all plans should be activated.  
-. The patient have to pay for both RAD and POL 
+. The patient have to pay for both RAD and OUT
 
-We need some more detailed planning to make the plan express the intention by the clinician and the health care provider. We need the _coordinator_. The coordinator has an important role to coordinate all the resources needed to perform the right activities at the right time. This involves a more detailed planning process. The coordinator have to do the following activites: 
+There have to be some more detailed planning to add these requirements into the plan. We need the _coordinator_. The coordinator coordinates all the resources needed to perform the right activities at the right time. This involves a more detailed planning process. The coordinator have to do the following activites: 
 
-* Make appointment for the outpatient clinic 
-* Request radiology 
-* Make appointment for radiology 
+* Make appointment for the outpatient clinic (OUT)
+* Request radiology (RAD)
+* Make appointment for radiology   
 * Inform patient about the attendance at both RAD and OUT 
 * Inform patient on how to do SELF 
 * Make sure that patient have done SELF before OUT 
@@ -58,25 +63,24 @@ We need some more detailed planning to make the plan express the intention by th
 
 When the coordinator have done this we have expresed the following items in the plan: 
 
+.Added tasks by the coordinator
 [options="header"]
 |====
 |Who | What | Why 
-|Patient   		| Attend to RAD 
+|Patient   		| RAD.ATTEND
 | Radiograper need to know when to call in the patient. 
 
-|Patient 		| Attend to OUT
+|Patient 		| OUT.ATTEND
 |The doctor need to know if he can call in and start the consultation (or if she should do other tasks) 
 
-|Patient		| Attend to contact (hospital) 
-|The health care provider know that the patient "is in the building"
-
-|Patient 		| Payment is made POL
+|Patient | RAD.PAY
+|
+|Patient 		| OUT.PAY
 |
 
-|Patient | Payment is made for RAD 
 |====
 
-The coordinator adds some tasks to the plans and the resulting TASK_PLANS looks like the image below. 
+The task plans now look like the image below: 
 
 .The workplan after coordination 
 image::hip_workplan_pattern_draw-Stage03.svg[]
@@ -99,6 +103,8 @@ image::hip_workplan_pattern_draw-Stage05.svg[]
 
 Users at the surgical department will use the running task plans to query for the next tasks to perform. Their focus will be to pick the next available task from a lot of parallell task plans. This is illustrated in the image below. Completed tasks are drawn with a grey background and the green ones are the available tasks. 
 
+NOTE: The state drawn is just for illustration and picked by "random". 
+
 .Surgical department queries for the next available tasks 
 image::hip_workplan_pattern_draw-OUT_Next_01.svg[]
 
@@ -111,10 +117,10 @@ The attendance task may have timing callbacks. I.e. Make the task available 24 h
 
 We discussed if the attendance task should be in a separate task plan where the patient is the primary performer. The current solution where the attendance is tied to the service performed where chosen of several reasons: 
 
-. It doesn't mather who makes the event entry that patient arrived. Anyone who meets the patient (clinician, administrative) might do this. If the hospital provides self-check in by some portal or kiosk the patient might himself do this. This makes it natural to say that since the attendance on POL is relevant for one task in the POL task plan, then the attendance task should be added here. 
+. It doesn't mather who makes the event entry that patient arrived. Anyone who meets the patient (clinician, administrative) might do this. If the hospital provides self-check in by some portal or kiosk the patient might himself do this. This makes it natural to say that since the attendance on OUT is relevant for one task in the OUT task plan, then the attendance task should be added here. 
 
 === Multiple pre-conditions 
-The POL.DO task have 3 incoming arrows. It is planned but are waiting for three different tasks to be completed to get available. 
+The OUT.DO task have 3 incoming arrows. It is planned but are waiting for three different tasks to be completed to get available. 
 
 The transition from ATTEND_OUT to DO is taken care of by the task plan. To model the dependency to SELF.REPORT and RAD.REPORT we need to use preconditions on the task. This is what is shown in the image like: 
 
