@@ -1,0 +1,87 @@
+= How to reference TASK_PLAN from WORK_PLAN 
+
+
+
+== Background 
+
+.UserStory-A
+****
+Given that I am designing a WORK_PLAN archetype +
+Then I want to control what kind of TASK_PLANs that are allowed to add to the WP as top_level_plans 
+AND also the cardinality on each 
+****
+
+
+
+
+.UserStory-B
+****
+User A commits TASK_PLAN A in COMPOSITION A + 
+User B commits TASK_PLAN B in COMPOSITION B +
+User C creates WORK_PLAN W AND add A and B as top level plans in COMPOSITION C  
+****
+
+Given the UserStory-B where we add TASK_PLAN as references, and combining it with UserStory-A we need a way to control what kind of data should got into the top_level_plans. 
+
+We need a way to put some constrains on the references to put inside the slot. 
+
+A way of thinking is the following where we express some constraints on the referenced data to put into the list. Here we say that 
+
+----
+top_level_plans with constraint: 
+
+type: UID_BASED_VALUE 
+which 
+[
+allow Archetype TASK_PLAN.my_first_taskplan.v1 1..1 , 
+allow Archetype TASK_PLAN.my_best_taskplan.v1 0..*
+]
+and the slot is open 
+----
+
+
+.UserStory-C
+****
+Given a running WORK_PLAN `WP.1` in the engine + 
+Then a user SHOULD be able to add a TASK_PLAN `TP.n` to `WP.1`
+****
+
+
+
+
+
+|====
+4+h|WORK_PLAN
+h|Card h|Name h| Prev h| New
+|0..1|top_level_plans | `List<UID_BASED_ID>` | `List<TASK_PLAN>`
+|0..1|plans | `List<UID_BASED_ID>` | 
+
+4+h| SUB_PLAN
+h|Card h|Name h| Prev h| New
+|1..1 | target | `UID_BASED_ID` | `TASK_PLAN`
+|====
+
+== LINKED_PLAN
+There is two kind of LINKED_PLANs, HAND_OFF and SUB_PLAN. Currently they references other TASK_PLAN by the attribute _target_ on LINKED_PLAN. The attribute is mandatory. 
+
+For these structures we have the same problems as with WORK_PLAN.top_level_plans. The only difference is that there have to be one and only one reference. 
+
+For archetype/template design we need control over the runtime references (or embedded) TASK_PLANs. The quickest and easiest way to offer this is to embed the TASK_PLAN. Then the designer may directly controll the archetyped constraints. 
+
+But this is not possible for HAND_OFF. HAND_OFF is by nature a reference to a TASK_PLAN outside the "current TASK_PLAN". 
+
+
+== Example of an instance (RM)
+Below is an example structure of an instance of a WORK_PLAN covering most of the discussed topics. 
+
+
+.WP-1 
+.....
+top_level_plans: A, B 
+top_level_embedded_plans: X 
+sub_plan S1.target references C 
+sub_plan S2.target embedded D
+hand_off H1.target references E 
+.....
+
+

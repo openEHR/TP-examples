@@ -20,7 +20,7 @@ Now the clinican is satisfied. The requested services are radiology, self evalua
 
 .The intended plan from the clinician
 image::hip_workplan_pattern_draw-Stage01.svg[]
-
+g
 
 There are three activities in the plan. Each of the activities will be performed by different actors. In openEHR Task Planning this is a WORK_PLAN with three (3) TASK_PLANS. To simplify the use-case we define that each task plan has two tasks, DO and REPORT. Based on this the plan can be illustrated as the image below: 
 
