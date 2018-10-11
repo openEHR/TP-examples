@@ -3,24 +3,55 @@
 
 
 == Background 
+During the implementation of TaskPlanning both Marand and DIPS has faced some issues related to the correlation between a WORK_PLAN and its TASK_PLANs. The same pattern applies to LINKED_PLANS as well. 
 
-.UserStory-A
-****
+Here you will find a description of the use-cases and some possible solutions for this. 
+
+The intention of this note is to give a description of the problems to make the further communication about the topic easier and more precise. 
+
+== User stories
+
+=== UserStory-A
+____
 Given that I am designing a WORK_PLAN archetype +
 Then I want to control what kind of TASK_PLANs that are allowed to add to the WP as top_level_plans 
 AND also the cardinality on each 
-****
+____
 
 
 
 
-.UserStory-B
-****
+=== UserStory-B
+____
 User A commits TASK_PLAN A in COMPOSITION A + 
 User B commits TASK_PLAN B in COMPOSITION B +
 User C creates WORK_PLAN W AND add A and B as top level plans in COMPOSITION C  
-****
+____
 
+
+=== UserStory-C
+____
+Given a running WORK_PLAN `WP.1` in the engine + 
+Then a user SHOULD be able to add a TASK_PLAN `TP.n` to `WP.1`
+____
+
+
+=== Example of an instance (RM)
+Below is an example structure of an instance of a WORK_PLAN covering most of the discussed topics. 
+
+
+.WP-1 
+.....
+top_level_plans: A, B 
+top_level_embedded_plans: X 
+sub_plan S1.target references C 
+sub_plan S2.target embedded D
+hand_off H1.target references E 
+.....
+
+
+
+== Discussion 
 Given the UserStory-B where we add TASK_PLAN as references, and combining it with UserStory-A we need a way to control what kind of data should got into the top_level_plans. 
 
 We need a way to put some constrains on the references to put inside the slot. 
@@ -40,26 +71,10 @@ and the slot is open
 ----
 
 
-.UserStory-C
-****
-Given a running WORK_PLAN `WP.1` in the engine + 
-Then a user SHOULD be able to add a TASK_PLAN `TP.n` to `WP.1`
-****
+If we got this kind of structure to be able to constraint the content to be added/references by UIDS, then there where no need to change the RM as proposed below. Because everything would then be references and the archetype will define full controll of what to put into the "slot". 
 
 
 
-
-
-|====
-4+h|WORK_PLAN
-h|Card h|Name h| Prev h| New
-|0..1|top_level_plans | `List<UID_BASED_ID>` | `List<TASK_PLAN>`
-|0..1|plans | `List<UID_BASED_ID>` | 
-
-4+h| SUB_PLAN
-h|Card h|Name h| Prev h| New
-|1..1 | target | `UID_BASED_ID` | `TASK_PLAN`
-|====
 
 == LINKED_PLAN
 There is two kind of LINKED_PLANs, HAND_OFF and SUB_PLAN. Currently they references other TASK_PLAN by the attribute _target_ on LINKED_PLAN. The attribute is mandatory. 
@@ -71,17 +86,20 @@ For archetype/template design we need control over the runtime references (or em
 But this is not possible for HAND_OFF. HAND_OFF is by nature a reference to a TASK_PLAN outside the "current TASK_PLAN". 
 
 
-== Example of an instance (RM)
-Below is an example structure of an instance of a WORK_PLAN covering most of the discussed topics. 
 
+== Changes in RM 
+Below is a table with the proposed changes to the RM. 
 
-.WP-1 
-.....
-top_level_plans: A, B 
-top_level_embedded_plans: X 
-sub_plan S1.target references C 
-sub_plan S2.target embedded D
-hand_off H1.target references E 
-.....
+NOTE: If we got a way to handle constraints on UIDS as defined above, then there was no need to change the RM. 
 
+|====
+4+h|WORK_PLAN
+h|Card h|Name h| Prev h| New
+|0..1|top_level_plans | `List<UID_BASED_ID>` | The same
+|0..1|top_level_embedded_plans | N/A | `List<TASK_PLAN>`
+|0..1|plans | `List<UID_BASED_ID>` | REMOVED
 
+4+h| SUB_PLAN
+h|Card h|Name h| Prev h| New
+|1..1 | target | `UID_BASED_ID` | CHOICHE (`TASK_PLAN`, `UID_BASED_ID`)
+|====
