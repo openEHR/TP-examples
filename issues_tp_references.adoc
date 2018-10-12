@@ -135,7 +135,7 @@ h|Attributes  {set:cellbgcolor:lightblue} h| Signature {set:cellbgcolor:lightblu
 |====
 
 === Alternative 3 
-If it was possible to define constraints on what to add in a LIST<UID>. Then there where no need to change the RM. Then the designer and designer application was able to define what to add. Be able to constraint what to put into the slot. This would be useful both for client application and for the backend to validate data. 
+If it was possible to define constraints on what to add in a LIST<UID>. Then there where no need to change the RM. Then the designer and designer application were able to define what to add. Be able to constraint what to put into the slot. This would be useful both for client application and for the backend to validate data. 
 
 == Changes in RM 
 Below is a table with the proposed changes to the RM. 
