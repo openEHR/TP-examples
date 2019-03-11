@@ -1,0 +1,77 @@
+archetype (adl_version=1.4; uid=e53d6ac3-9f59-41d8-81ce-59a58014147b)
+	openEHR-TASK_PLANNING-WORK_PLAN.generic_work_plan.v0
+
+concept
+	[at0000]
+
+language
+	original_language = <[ISO_639-1::en]>
+	translations = <
+		["nb"] = <
+			language = <[ISO_639-1::nb]>
+			author = <
+			>
+		>
+	>
+
+description
+	original_author = <
+		["date"] = <"2019-03-05">
+	>
+	lifecycle_state = <"unmanaged">
+	details = <
+		["nb"] = <
+			language = <[ISO_639-1::nb]>
+			copyright = <"© openEHR Foundation">
+		>
+		["en"] = <
+			language = <[ISO_639-1::en]>
+		>
+	>
+	other_details = <
+		["licence"] = <"This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.">
+		["custodian_organisation"] = <"openEHR Foundation">
+		["original_namespace"] = <"org.openehr">
+		["original_publisher"] = <"openEHR Foundation">
+		["custodian_namespace"] = <"org.openehr">
+		["MD5-CAM-1.0.1"] = <"9c77342afd95ec001f6887bab451ed2c">
+		["build_uid"] = <"b53b0817-8a2d-31cc-8a89-b2004120e55c">
+	>
+
+definition
+	WORK_PLAN[at0000] matches {    -- generic_work_plan
+		top_level_plans cardinality matches {1..*; unordered} matches {
+			allow_archetype TASK_PLAN[at0002] occurrences matches {0..*} matches {    -- openSlot
+				include
+					archetype_id/value matches {/.*/}
+			}
+		}
+	}
+
+ontology
+	term_definitions = <
+		["en"] = <
+			items = <
+				["at0000"] = <
+					text = <"generic_work_plan">
+					description = <"generic_work_plan">
+				>
+				["at0002"] = <
+					text = <"openSlot">
+					description = <"*">
+				>
+			>
+		>
+		["nb"] = <
+			items = <
+				["at0000"] = <
+					text = <"Generell workplan">
+					description = <"En generell workplan som kan gjenbrukes til flere formål">
+				>
+				["at0002"] = <
+					text = <"Åpning for å legge til hva som helst">
+					description = <"*">
+				>
+			>
+		>
+	>

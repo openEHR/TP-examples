@@ -1,0 +1,135 @@
+archetype (adl_version=1.4; uid=9bdf1cc2-1da2-419d-998e-94f99c5fade3)
+	openEHR-TASK_PLANNING-TASK_PLAN.outpatient_attendance.v0
+
+concept
+	[at0000]
+
+language
+	original_language = <[ISO_639-1::en]>
+	translations = <
+		["nb"] = <
+			language = <[ISO_639-1::nb]>
+			author = <
+			>
+		>
+	>
+
+description
+	original_author = <
+		["date"] = <"2019-03-11">
+	>
+	lifecycle_state = <"unmanaged">
+	details = <
+		["nb"] = <
+			language = <[ISO_639-1::nb]>
+			purpose = <"Modellerer pasientens innsjekk på poliklinikk">
+			copyright = <"© openEHR Foundation">
+			use = <"Benyttes primært som en HAND_OFF i en større plan">
+		>
+		["en"] = <
+			language = <[ISO_639-1::en]>
+			purpose = <"The check-in process at a health care provider">
+		>
+	>
+	other_details = <
+		["licence"] = <"This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.">
+		["custodian_organisation"] = <"openEHR Foundation">
+		["original_namespace"] = <"org.openehr">
+		["original_publisher"] = <"openEHR Foundation">
+		["custodian_namespace"] = <"org.openehr">
+		["MD5-CAM-1.0.1"] = <"908ee04400e2d82c54d356ad5fc59782">
+		["build_uid"] = <"d1656491-de70-3685-a220-0f306a866fd5">
+	>
+
+definition
+	TASK_PLAN[at0000] matches {    -- Outpatient attendance/check in
+		definition matches {
+			TASK_GROUP[at0001] matches {    -- Task group
+				members cardinality matches {0..*; unordered} matches {
+					PERFORMABLE_TASK[at0002] occurrences matches {0..1} matches {*}    -- Check In
+				}
+			}
+		}
+		principal_performer matches {
+			TASK_PARTICIPATION[at0003] matches {    -- TASK_PARTICIPATION
+				role cardinality matches {0..*; unordered} matches {
+					DV_CODED_TEXT[at0004] occurrences matches {0..1} matches {    -- DV_TEXT
+						defining_code matches {
+							[local::
+							at0005,    -- SUBJECT_OF_CARE
+							at0006;    -- OFFICE
+							at0005]
+						}
+					}
+				}
+			}
+		}
+	}
+
+ontology
+	term_definitions = <
+		["en"] = <
+			items = <
+				["at0000"] = <
+					text = <"Outpatient attendance/check in">
+					description = <"outpatient_attendance">
+				>
+				["at0001"] = <
+					text = <"Task group">
+					description = <"*">
+				>
+				["at0002"] = <
+					text = <"Check In">
+					description = <"*">
+				>
+				["at0003"] = <
+					text = <"TASK_PARTICIPATION">
+					description = <"*">
+				>
+				["at0004"] = <
+					text = <"DV_TEXT">
+					description = <"*">
+				>
+				["at0005"] = <
+					text = <"SUBJECT_OF_CARE">
+					description = <"Patient">
+				>
+				["at0006"] = <
+					text = <"OFFICE">
+					description = <"Administrative personell">
+				>
+			>
+		>
+		["nb"] = <
+			items = <
+				["at0000"] = <
+					text = <"Innsjekk på poliklinikk">
+					description = <"Innsjekk på poliklinikk">
+				>
+				["at0001"] = <
+					text = <"*Task group (en)">
+					description = <"*">
+				>
+				["at0002"] = <
+					text = <"Innsjekk">
+					description = <"*">
+				>
+				["at0003"] = <
+					text = <"Oppgavedeltakelse">
+					description = <"*">
+				>
+				["at0004"] = <
+					text = <"*DV_TEXT (en)">
+					description = <"*">
+				>
+				["at0005"] = <
+					text = <"Pasienten">
+					description = <"Pasienten selv sjekker inn via kiosk">
+				>
+				["at0006"] = <
+					text = <"Kontor">
+					description = <"Administrativt personale">
+				>
+			>
+		>
+	>

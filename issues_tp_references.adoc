@@ -8,7 +8,9 @@
 :hand_off: http://www.openehr.org/releases/PROC/latest/task_planning.html#_hand_off_class[HAND_OFF]
 = How to reference TASK_PLAN from WORK_PLAN 
 
+== STATUS 
 
+WARNING: *RESOLVED* - the RM was changed in v 1.3.0 at _04 Jan 2019_ Change WORK_PLAN.top_level_plans and LINKED_PLAN.target to direct links. See https://openehr.atlassian.net/browse/SPECPROC-16[SPECPROC-16]
 
 == Background 
 

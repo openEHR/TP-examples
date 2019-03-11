@@ -1,0 +1,21 @@
+:imagesdir: images
+
+= Encounter at an outpatient eye consultation
+
+== Workflow as presented by customer 
+
+image::WorkplanEyeOutPatient-FlowOverview.svg[]
+
+
+== The overall Workplan 
+
+image::WorkplanEyeOutPatient-TP_Overview.svg[]
+
+== The workplan template 
+The following is the template as exported from Marand Archetype Designer 
+
+[source, json]
+----
+include::adl/outpatient eye.t.json[]
+----
+

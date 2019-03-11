@@ -1,0 +1,140 @@
+archetype (adl_version=1.4; uid=aa4a1bc7-8bcc-49f5-b912-0ff03b0e983a)
+	openEHR-TASK_PLANNING-TASK_PLAN.outpatient_administrative_data.v0
+
+concept
+	[at0000]
+
+language
+	original_language = <[ISO_639-1::en]>
+	translations = <
+		["nb"] = <
+			language = <[ISO_639-1::nb]>
+			author = <
+			>
+		>
+	>
+
+description
+	original_author = <
+		["date"] = <"2019-03-11">
+	>
+	lifecycle_state = <"unmanaged">
+	details = <
+		["nb"] = <
+			language = <[ISO_639-1::nb]>
+			copyright = <"© openEHR Foundation">
+		>
+		["en"] = <
+			language = <[ISO_639-1::en]>
+		>
+	>
+	other_details = <
+		["licence"] = <"This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.">
+		["custodian_organisation"] = <"openEHR Foundation">
+		["original_namespace"] = <"org.openehr">
+		["original_publisher"] = <"openEHR Foundation">
+		["custodian_namespace"] = <"org.openehr">
+		["MD5-CAM-1.0.1"] = <"2a0ad5e9ddd007c4faa82060c04e64e5">
+		["build_uid"] = <"cf00d1ef-8179-39b8-8552-37632c35c6bf">
+	>
+
+definition
+	TASK_PLAN[at0000] matches {    -- Outpatient administrative data
+		definition matches {
+			TASK_GROUP[at0001] matches {    -- Task group
+				members cardinality matches {0..*; unordered} matches {
+					PERFORMABLE_TASK[at0002] occurrences matches {0..1} matches {*}    -- Record attendance
+					PERFORMABLE_TASK[at0003] occurrences matches {0..1} matches {*}    -- Update patient information
+				}
+			}
+		}
+		principal_performer matches {
+			TASK_PARTICIPATION[at0004] matches {    -- TASK_PARTICIPATION
+				role cardinality matches {0..*; unordered} matches {
+					DV_CODED_TEXT[at0005] occurrences matches {0..1} matches {    -- DV_TEXT
+						defining_code matches {
+							[local::
+							at0006,    -- OFFICE
+							at0007]    -- ANY
+						}
+					}
+				}
+			}
+		}
+	}
+
+ontology
+	term_definitions = <
+		["en"] = <
+			items = <
+				["at0000"] = <
+					text = <"Outpatient administrative data">
+					description = <"outpatient administrative data">
+				>
+				["at0001"] = <
+					text = <"Task group">
+					description = <"*">
+				>
+				["at0002"] = <
+					text = <"Record attendance">
+					description = <"*">
+				>
+				["at0003"] = <
+					text = <"Update patient information">
+					description = <"*">
+				>
+				["at0004"] = <
+					text = <"TASK_PARTICIPATION">
+					description = <"*">
+				>
+				["at0005"] = <
+					text = <"DV_TEXT">
+					description = <"*">
+				>
+				["at0006"] = <
+					text = <"OFFICE">
+					description = <"Administration">
+				>
+				["at0007"] = <
+					text = <"ANY">
+					description = <"Other performer">
+				>
+			>
+		>
+		["nb"] = <
+			items = <
+				["at0000"] = <
+					text = <"Oppdatere pasientadministrative data">
+					description = <"Oppdatere pasientadministrative data">
+				>
+				["at0001"] = <
+					text = <"Oppgavegruppe">
+					description = <"*">
+				>
+				["at0002"] = <
+					text = <"Registrere oppmøte">
+					description = <"Registrere eller bekrefte oppmøte">
+				>
+				["at0003"] = <
+					text = <"Oppdatere pasientinformasjon">
+					description = <"Oppdatere eller bekrefte pasientinformasjon">
+				>
+				["at0004"] = <
+					text = <"Oppgavedeltakelse">
+					description = <"*">
+				>
+				["at0005"] = <
+					text = <"DV_TEXT">
+					description = <"*">
+				>
+				["at0006"] = <
+					text = <"Postpersonale">
+					description = <"Administrativt personale">
+				>
+				["at0007"] = <
+					text = <"Andre">
+					description = <"Enhver annen kan gjøre dette ">
+				>
+			>
+		>
+	>
