@@ -33,6 +33,10 @@ If the patient is included in the study the following registrations should be pe
 
 NOTE: Only hip replacement should be followed up after one year. 
 
+== Taskplan model with Draw.io
+
+image::wp_infection_monitoring.png[]
+
 == BPMN/CMMN models for infection monitoring 
 The following chapter gives some examples on how to model the process using BPMN and CMMN notations. 
 
