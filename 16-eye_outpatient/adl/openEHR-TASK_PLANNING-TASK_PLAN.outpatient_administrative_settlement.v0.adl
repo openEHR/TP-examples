@@ -1,0 +1,151 @@
+archetype (adl_version=1.4; uid=4d1fb782-a663-483a-a0bb-e913188d9303)
+	openEHR-TASK_PLANNING-TASK_PLAN.outpatient_administrative_settlement.v0
+
+concept
+	[at0000]
+
+language
+	original_language = <[ISO_639-1::en]>
+	translations = <
+		["nb"] = <
+			language = <[ISO_639-1::nb]>
+			author = <
+			>
+		>
+	>
+
+description
+	original_author = <
+		["date"] = <"2019-03-11">
+	>
+	lifecycle_state = <"unmanaged">
+	details = <
+		["nb"] = <
+			language = <[ISO_639-1::nb]>
+			copyright = <"© openEHR Foundation">
+		>
+		["en"] = <
+			language = <[ISO_639-1::en]>
+		>
+	>
+	other_details = <
+		["licence"] = <"This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.">
+		["custodian_organisation"] = <"openEHR Foundation">
+		["original_namespace"] = <"org.openehr">
+		["original_publisher"] = <"openEHR Foundation">
+		["custodian_namespace"] = <"org.openehr">
+		["MD5-CAM-1.0.1"] = <"77102b700fb867c197c01cc3f6f63a58">
+		["build_uid"] = <"9ffd7242-2528-33e9-9109-cb73aae45853">
+	>
+
+definition
+	TASK_PLAN[at0000] matches {    -- outpatient administrative settlement
+		definition matches {
+			TASK_GROUP[at0001] matches {    -- Task group
+				members cardinality matches {0..*; unordered} matches {
+					PERFORMABLE_TASK[at0002] occurrences matches {0..1} matches {*}    -- Set up new appointment
+					PERFORMABLE_TASK[at0004] occurrences matches {0..1} matches {*}    -- Register medical codes
+				}
+				execution_type matches {|1|}
+			}
+		}
+		principal_performer matches {
+			TASK_PARTICIPATION[at0005] matches {    -- TASK_PARTICIPATION
+				role cardinality matches {0..*; unordered} matches {
+					DV_CODED_TEXT[at0006] occurrences matches {0..1} matches {    -- DV_CODED_TEXT
+						defining_code matches {
+							[local::
+							at0007,    -- Office
+							at0008,    -- Nurse
+							at0009;    -- Physician
+							at0007]
+						}
+					}
+				}
+			}
+		}
+	}
+
+ontology
+	term_definitions = <
+		["en"] = <
+			items = <
+				["at0000"] = <
+					text = <"outpatient administrative settlement">
+					description = <"outpatient administrative settlement">
+				>
+				["at0001"] = <
+					text = <"Task group">
+					description = <"*">
+				>
+				["at0002"] = <
+					text = <"Set up new appointment">
+					description = <"*">
+				>
+				["at0004"] = <
+					text = <"Register medical codes">
+					description = <"*">
+				>
+				["at0005"] = <
+					text = <"TASK_PARTICIPATION">
+					description = <"*">
+				>
+				["at0006"] = <
+					text = <"DV_CODED_TEXT">
+					description = <"*">
+				>
+				["at0007"] = <
+					text = <"Office">
+					description = <"Administrative personell">
+				>
+				["at0008"] = <
+					text = <"Nurse">
+					description = <"Nurse on duty">
+				>
+				["at0009"] = <
+					text = <"Physician">
+					description = <"The responsible physician">
+				>
+			>
+		>
+		["nb"] = <
+			items = <
+				["at0000"] = <
+					text = <"Oppgjør og avslutning av poliklinikk">
+					description = <"Oppgjør og avslutning av poliklinikk">
+				>
+				["at0001"] = <
+					text = <"Oppgjør og avslutning av poliklinikk">
+					description = <"*">
+				>
+				["at0002"] = <
+					text = <"Sett opp og planlegge ny time">
+					description = <"Dersom lege har sagt noe om videre oppfølging ">
+				>
+				["at0004"] = <
+					text = <"Registrere medisinske koder, takster, etc">
+					description = <"*">
+				>
+				["at0005"] = <
+					text = <"Oppgavedeltakelse">
+					description = <"*">
+				>
+				["at0006"] = <
+					text = <"Kodet tekst">
+					description = <"*">
+				>
+				["at0007"] = <
+					text = <"Kontor">
+					description = <"Administrativt personale">
+				>
+				["at0008"] = <
+					text = <"Sykepleier">
+					description = <"Sykepleier på vakt dersom administrativt personale ikke har mulighet">
+				>
+				["at0009"] = <
+					text = <"Lege">
+					description = <"Lege kan selv registrere oppgjøret">
+				>
+			>
+		>
+	>

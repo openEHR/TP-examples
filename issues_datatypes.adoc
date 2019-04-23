@@ -1,0 +1,108 @@
+= Datatype ISSUES 
+
+== Background 
+Task Planning specification introduces usage of a set of new foundation datatypes. When implementing the specification they seems to be inconsistent. The following note discuss this problem and suggests a solution. 
+
+== The Problem 
+In the foundation types for time there is a mixture of interface, reference to classes in programming languages and ISO8601 classes. They have a graph of inheritance as defined in the image below: 
+
+.base.foundation_types.time and iso8601_time packages
+image::http://www.openehr.org/releases/BASE/latest/docs/UML/diagrams/BASE-foundation_types.time.svg[]
+
+The usage of these classses are mixed in the specification. Below we have summarized some examples on this. 
+
+.Usage of some foundation types for time and iso8601 
+[cols="5,^5,^5" options="header"]
+|====
+|Class | Attribute | Type 
+|http://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_state_variable_class[STATE_VARIABLE]
+|required_currency
+|Duration
+
+|TASK_PLAN, DELAY_EVENT, TIMELINE_MOMENT
+|Several 
+|IDuration
+
+|http://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_calendar_time_class[CALENDAR_TIME]
+|time
+|Date_time 
+
+|http://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_calendar_event_class[CALENDAR_EVENT]
+|time 
+|IDate_time 
+
+|http://www.openehr.org/releases/PROC/latest/docs/task_planning/task_planning.html#_clock_time_class[CLOCK_TIME]
+|time
+|Time 
+|====
+
+
+== How to operate on this in seralized examples. 
+
+Let look at an example doing AQL on `TIMELINE_MOMENT`. 
+
+.AQL on IDuration attribute
+[source, sql]
+----
+select tm/timeline_offset from COMPOSITION c contains TIMELINE_MOMENT tm
+----
+
+There are several possible serializations of this: 
+
+.ALT-1 Type Iso8601Duration
+[source,json]
+----
+{_type: "Iso8601Duration", value: "P18DT23H1M53.064S"}
+----
+
+.ALT-2 Type IDuration 
+[source,json]
+----
+{_type: "IDuration", value: "P18DT23H1M53.064S"} 
+----
+
+WARNING: ALT-2 is not allowed. The type of instances MUST be concrete types. 
+
+
+.AQL on value attribute on IDuration 
+[source, SQL]
+----
+select tm/timeline_offset/value from COMPOSITION c contains TIMELINE_MOMENT tm
+----
+
+[source,json]
+----
+  "P18DT23H1M53.064S"
+----
+
+
+
+
+.Example on seralized class 
+[source,json]
+----
+"timeline_offset": {
+    "_type": "Iso8601Duration",
+    "value": "P18DT23H1M53.064S"
+  }
+----
+
+
+== The solution 
+Below we have defined a stepwise refactoring of the datatypes according to the needs for _Task Planning_ (and possible other use-cases)
+
+.Step 1 
+Remove the http://www.openehr.org/releases/BASE/latest/docs/foundation_types/foundation_types.html#_duration_class[Duration] class. It is an _assumed built-in primitive type representing a duration_ . As such it is not needed to define in this specification. 
+
+.Step 2
+For all I* classes in temporal, make them concrete and remove the I prefix. I.e. change IDuration into Duration. 
+
+.Step 3 
+Add the _value_ attribute to the http://www.openehr.org/releases/BASE/latest/docs/foundation_types/foundation_types.html#_any_class[Any] class. The _value_ should be a serialized representation of the primitive datatype. 
+
+.Step 4 
+For all http://www.openehr.org/releases/BASE/latest/docs/foundation_types/foundation_types.html#_temporal_class[Temporal] classes define that the _value_ is assumed to be ISO8601 serialized string of the type. 
+
+
+.Step 5 
+Remove the ISO8601 package since the assumed types for all Temporal values are ISO8601. 

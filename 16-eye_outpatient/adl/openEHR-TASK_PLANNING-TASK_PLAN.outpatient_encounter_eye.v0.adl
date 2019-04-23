@@ -1,0 +1,303 @@
+archetype (adl_version=1.4; uid=709d4a29-8ca6-4269-a81b-687179633994)
+	openEHR-TASK_PLANNING-TASK_PLAN.outpatient_encounter_eye.v0
+
+concept
+	[at0000]
+
+language
+	original_language = <[ISO_639-1::en]>
+	translations = <
+		["nb"] = <
+			language = <[ISO_639-1::nb]>
+			author = <
+			>
+		>
+	>
+
+description
+	original_author = <
+		["date"] = <"2019-03-11">
+	>
+	lifecycle_state = <"unmanaged">
+	details = <
+		["nb"] = <
+			language = <[ISO_639-1::nb]>
+			copyright = <"© openEHR Foundation">
+		>
+		["en"] = <
+			language = <[ISO_639-1::en]>
+		>
+	>
+	other_details = <
+		["licence"] = <"This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.">
+		["custodian_organisation"] = <"openEHR Foundation">
+		["original_namespace"] = <"org.openehr">
+		["original_publisher"] = <"openEHR Foundation">
+		["custodian_namespace"] = <"org.openehr">
+		["MD5-CAM-1.0.1"] = <"7ea4e7c79f1c2de0dafda444f124985b">
+		["build_uid"] = <"83bea7e1-afac-3521-b184-1fc6a053dc5e">
+	>
+
+definition
+	TASK_PLAN[at0000] matches {    -- outpatient_encounter eye
+		definition matches {
+			TASK_GROUP[at0001] matches {    -- Outpatient encounter
+				members cardinality matches {0..*; unordered} matches {
+					DISPATCHABLE_TASK[at0002] occurrences matches {0..1} matches {    -- Attendance
+						action matches {
+							HAND_OFF[at0003] matches {    -- Hand off
+								target matches {
+									allow_archetype TASK_PLAN[at0004] occurrences matches {0..*} matches {    -- TASK_PLAN
+										include
+											archetype_id/value matches {/.*/}
+									}
+								}
+							}
+						}
+						wait_spec matches {
+							TASK_WAIT matches {
+								events cardinality matches {0..*; unordered} matches {
+									CALENDAR_EVENT[at0020] occurrences matches {0..1} matches {*}    -- Attendance time
+								}
+							}
+						}
+					}
+					DISPATCHABLE_TASK[at0005] occurrences matches {0..1} matches {    -- Record attendance and update patient information
+						action matches {
+							HAND_OFF[at0006] matches {    -- Hand off
+								target matches {
+									allow_archetype TASK_PLAN[at0007] occurrences matches {0..*} matches {    -- TASK_PLAN
+										include
+											archetype_id/value matches {/.*/}
+									}
+								}
+							}
+						}
+					}
+					DISPATCHABLE_TASK[at0008] occurrences matches {0..1} matches {    -- Prelimenary investigations
+						action matches {
+							HAND_OFF[at0009] matches {    -- Hand off
+								target matches {
+									allow_archetype TASK_PLAN[at0010] occurrences matches {0..*} matches {    -- TASK_PLAN
+										include
+											archetype_id/value matches {/.*/}
+									}
+								}
+							}
+						}
+					}
+					DISPATCHABLE_TASK[at0011] occurrences matches {0..1} matches {    -- Consultation
+						action matches {
+							HAND_OFF[at0012] matches {    -- Hand off
+								target matches {
+									allow_archetype TASK_PLAN[at0013] occurrences matches {0..*} matches {    -- TASK_PLAN
+										include
+											archetype_id/value matches {/.*/}
+									}
+								}
+							}
+						}
+						wait_spec matches {
+							TASK_WAIT matches {
+								events cardinality matches {0..*; unordered} matches {
+									MANUAL_NOTIFICATION[at0021] occurrences matches {0..1} matches {*}    -- Preliminary investigations is ready
+								}
+							}
+						}
+					}
+					DISPATCHABLE_TASK[at0014] occurrences matches {0..1} matches {    -- Register medical codes and set up new appointements
+						action matches {
+							HAND_OFF[at0015] matches {    -- Hand off
+								target matches {
+									allow_archetype TASK_PLAN[at0016] occurrences matches {0..*} matches {    -- TASK_PLAN
+										include
+											archetype_id/value matches {/.*/}
+									}
+								}
+							}
+						}
+						wait_spec matches {
+							TASK_WAIT matches {
+								events cardinality matches {0..*; unordered} matches {
+									MANUAL_NOTIFICATION[at0022] occurrences matches {0..1} matches {*}    -- Consultation form is ready
+								}
+							}
+						}
+					}
+				}
+				execution_type matches {|0|}
+			}
+		}
+	}
+
+ontology
+	term_definitions = <
+		["en"] = <
+			items = <
+				["at0000"] = <
+					text = <"outpatient_encounter eye">
+					description = <"outpatient_encounter eye">
+				>
+				["at0001"] = <
+					text = <"Outpatient encounter">
+					description = <"*">
+				>
+				["at0002"] = <
+					text = <"Attendance">
+					description = <"*">
+				>
+				["at0003"] = <
+					text = <"Hand off">
+					description = <"*">
+				>
+				["at0004"] = <
+					text = <"TASK_PLAN">
+					description = <"*">
+				>
+				["at0005"] = <
+					text = <"Record attendance and update patient information">
+					description = <"*">
+				>
+				["at0006"] = <
+					text = <"Hand off">
+					description = <"*">
+				>
+				["at0007"] = <
+					text = <"TASK_PLAN">
+					description = <"*">
+				>
+				["at0008"] = <
+					text = <"Prelimenary investigations">
+					description = <"*">
+				>
+				["at0009"] = <
+					text = <"Hand off">
+					description = <"*">
+				>
+				["at0010"] = <
+					text = <"TASK_PLAN">
+					description = <"*">
+				>
+				["at0011"] = <
+					text = <"Consultation">
+					description = <"*">
+				>
+				["at0012"] = <
+					text = <"Hand off">
+					description = <"*">
+				>
+				["at0013"] = <
+					text = <"TASK_PLAN">
+					description = <"*">
+				>
+				["at0014"] = <
+					text = <"Register medical codes and set up new appointements">
+					description = <"*">
+				>
+				["at0015"] = <
+					text = <"Hand off">
+					description = <"*">
+				>
+				["at0016"] = <
+					text = <"TASK_PLAN">
+					description = <"*">
+				>
+				["at0020"] = <
+					text = <"Attendance time">
+					description = <"*">
+				>
+				["at0021"] = <
+					text = <"Preliminary investigations is ready">
+					description = <"Since preliminary investigations is recored on paper we need a way to tell when it is ready ">
+				>
+				["at0022"] = <
+					text = <"Consultation form is ready">
+					description = <"Physician write this on paper - and needs to send a manual notification to tell when ready">
+				>
+			>
+		>
+		["nb"] = <
+			items = <
+				["at0000"] = <
+					text = <"Poliklinisk oppmøte ved øyepoliklinikk">
+					description = <"Poliklinisk oppmøte ved øyepoliklinikk">
+				>
+				["at0001"] = <
+					text = <"Poliklinisk oppmøte">
+					description = <"*">
+				>
+				["at0002"] = <
+					text = <"Oppmøte">
+					description = <"*">
+				>
+				["at0003"] = <
+					text = <"Hand off">
+					description = <"*">
+				>
+				["at0004"] = <
+					text = <"Oppgave slot">
+					description = <"*">
+				>
+				["at0005"] = <
+					text = <"Registrer oppmøte og oppdater pasientinformasjon">
+					description = <"*">
+				>
+				["at0006"] = <
+					text = <"Hand off">
+					description = <"*">
+				>
+				["at0007"] = <
+					text = <"Oppgave slot">
+					description = <"*">
+				>
+				["at0008"] = <
+					text = <"Forundersøkelser">
+					description = <"*">
+				>
+				["at0009"] = <
+					text = <"Hand off">
+					description = <"*">
+				>
+				["at0010"] = <
+					text = <"Oppgave slot">
+					description = <"*">
+				>
+				["at0011"] = <
+					text = <"Konsultasjonen">
+					description = <"*">
+				>
+				["at0012"] = <
+					text = <"Hand off">
+					description = <"*">
+				>
+				["at0013"] = <
+					text = <"Oppgave slot">
+					description = <"*">
+				>
+				["at0014"] = <
+					text = <"Registrere medisinsk koding og sett opp nye timer">
+					description = <"*">
+				>
+				["at0015"] = <
+					text = <"Hand off">
+					description = <"*">
+				>
+				["at0016"] = <
+					text = <"Oppgave slot">
+					description = <"*">
+				>
+				["at0020"] = <
+					text = <"Oppmøte tid">
+					description = <"*">
+				>
+				["at0021"] = <
+					text = <"Forundersøkelser er ferdig">
+					description = <"*Since preliminary investigations is recored on paper we need a way to tell when it is ready  (en)">
+				>
+				["at0022"] = <
+					text = <"Konsultasjonsskjema er ferdig">
+					description = <"*Physician write this on paper - and needs to send a manual notification to tell when ready (en)">
+				>
+			>
+		>
+	>

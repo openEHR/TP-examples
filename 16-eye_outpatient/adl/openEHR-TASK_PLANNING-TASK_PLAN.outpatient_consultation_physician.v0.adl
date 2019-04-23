@@ -1,0 +1,133 @@
+archetype (adl_version=1.4; uid=81fabcd8-d441-483c-8cf8-6fdf402555d0)
+	openEHR-TASK_PLANNING-TASK_PLAN.outpatient_consultation_physician.v0
+
+concept
+	[at0000]
+
+language
+	original_language = <[ISO_639-1::en]>
+	translations = <
+		["nb"] = <
+			language = <[ISO_639-1::nb]>
+			author = <
+			>
+		>
+	>
+
+description
+	original_author = <
+		["date"] = <"2019-03-11">
+	>
+	lifecycle_state = <"unmanaged">
+	details = <
+		["nb"] = <
+			language = <[ISO_639-1::nb]>
+			purpose = <"Modellerer konsultasjon med lege på en poliklinikk. Er helt genrell og i sin enkleste form i denne versjonen">
+			copyright = <"© openEHR Foundation">
+		>
+		["en"] = <
+			language = <[ISO_639-1::en]>
+		>
+	>
+	other_details = <
+		["licence"] = <"This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.">
+		["custodian_organisation"] = <"openEHR Foundation">
+		["original_namespace"] = <"org.openehr">
+		["original_publisher"] = <"openEHR Foundation">
+		["custodian_namespace"] = <"org.openehr">
+		["MD5-CAM-1.0.1"] = <"4212ae3f67cf3fb60c1e750285e25356">
+		["build_uid"] = <"96fc45f8-191d-3499-a43c-9a3134638d2a">
+	>
+
+definition
+	TASK_PLAN[at0000] matches {    -- outpatient consultation physician
+		definition matches {
+			TASK_GROUP[at0001] matches {    -- Consultation, examination and treatment
+				members cardinality matches {0..*; unordered} matches {
+					PERFORMABLE_TASK[at0002] occurrences matches {0..1} matches {*}    -- Consultation
+				}
+			}
+		}
+		principal_performer matches {
+			TASK_PARTICIPATION[at0004] matches {    -- TASK_PARTICIPATION
+				role cardinality matches {0..*; unordered} matches {
+					DV_CODED_TEXT[at0005] occurrences matches {0..1} matches {    -- DV_CODED_TEXT
+						defining_code matches {
+							[local::
+							at0006,    -- Physician
+							at0007;    -- Physician assistent
+							at0006]
+						}
+					}
+				}
+			}
+		}
+	}
+
+ontology
+	term_definitions = <
+		["en"] = <
+			items = <
+				["at0000"] = <
+					text = <"outpatient consultation physician">
+					description = <"outpatient consultation physician">
+				>
+				["at0001"] = <
+					text = <"Consultation, examination and treatment">
+					description = <"*">
+				>
+				["at0002"] = <
+					text = <"Consultation">
+					description = <"A generic big task for the consultation. May be more concrete in real Taskplan">
+				>
+				["at0004"] = <
+					text = <"TASK_PARTICIPATION">
+					description = <"*">
+				>
+				["at0005"] = <
+					text = <"DV_CODED_TEXT">
+					description = <"*">
+				>
+				["at0006"] = <
+					text = <"Physician">
+					description = <"*">
+				>
+				["at0007"] = <
+					text = <"Physician assistent">
+					description = <"*">
+				>
+			>
+		>
+		["nb"] = <
+			items = <
+				["at0000"] = <
+					text = <"Poliklinisk konsultasjon med lege">
+					description = <"Poliklinisk konsultasjon med lege">
+				>
+				["at0001"] = <
+					text = <"Konsultasjon, undersøkelse og behandling">
+					description = <"*">
+				>
+				["at0002"] = <
+					text = <"Konsultasjon">
+					description = <"*A generic big task for the consultation. May be more concrete in real Taskplan (en)">
+				>
+				["at0004"] = <
+					text = <"Oppgavedeltakelse">
+					description = <"*">
+				>
+				["at0005"] = <
+					text = <"*DV_CODED_TEXT (en)">
+					description = <"*">
+				>
+				["at0006"] = <
+					text = <"Lege">
+					description = <"*">
+				>
+				["at0007"] = <
+					text = <"LIS">
+					description = <"*">
+				>
+			>
+		>
+	>

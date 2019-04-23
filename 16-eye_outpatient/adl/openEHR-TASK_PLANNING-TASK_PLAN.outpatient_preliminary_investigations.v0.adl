@@ -1,0 +1,151 @@
+archetype (adl_version=1.4; uid=af8b244b-5ce5-45c2-8f09-d0d4853c0708)
+	openEHR-TASK_PLANNING-TASK_PLAN.outpatient_preliminary_investigations.v0
+
+concept
+	[at0000]
+
+language
+	original_language = <[ISO_639-1::en]>
+	translations = <
+		["nb"] = <
+			language = <[ISO_639-1::nb]>
+			author = <
+			>
+		>
+	>
+
+description
+	original_author = <
+		["date"] = <"2019-03-11">
+	>
+	lifecycle_state = <"unmanaged">
+	details = <
+		["nb"] = <
+			language = <[ISO_639-1::nb]>
+			purpose = <"Forundersøkelser på en øyepoliklinikk. ">
+			copyright = <"© openEHR Foundation">
+		>
+		["en"] = <
+			language = <[ISO_639-1::en]>
+		>
+	>
+	other_details = <
+		["licence"] = <"This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.">
+		["custodian_organisation"] = <"openEHR Foundation">
+		["original_namespace"] = <"org.openehr">
+		["original_publisher"] = <"openEHR Foundation">
+		["custodian_namespace"] = <"org.openehr">
+		["MD5-CAM-1.0.1"] = <"55316bd375e795559b66bc0ee7c638d9">
+		["build_uid"] = <"17cb9272-8b59-37b8-bea2-9555ea95fe94">
+	>
+
+definition
+	TASK_PLAN[at0000] matches {    -- Outpatient preliminary investigations
+		definition matches {
+			TASK_GROUP[at0001] matches {    -- Preliminary investigations
+				members cardinality matches {0..*; unordered} matches {
+					PERFORMABLE_TASK[at0002] occurrences matches {0..1} matches {*}    -- Investigations
+					PERFORMABLE_TASK[at0003] occurrences matches {0..1} matches {*}    -- Record data
+				}
+			}
+		}
+		principal_performer matches {
+			TASK_PARTICIPATION[at0004] matches {    -- TASK_PARTICIPATION
+				role cardinality matches {0..*; unordered} matches {
+					DV_CODED_TEXT[at0005] occurrences matches {0..1} matches {    -- DV_CODED_TEXT
+						defining_code matches {
+							[local::
+							at0006,    -- Nurse
+							at0007,    -- Optician
+							at0008;    -- Physician
+							at0006]
+						}
+					}
+				}
+			}
+		}
+	}
+
+ontology
+	term_definitions = <
+		["en"] = <
+			items = <
+				["at0000"] = <
+					text = <"Outpatient preliminary investigations">
+					description = <"outpatient preliminary investigations">
+				>
+				["at0001"] = <
+					text = <"Preliminary investigations">
+					description = <"*">
+				>
+				["at0002"] = <
+					text = <"Investigations">
+					description = <"*">
+				>
+				["at0003"] = <
+					text = <"Record data">
+					description = <"*">
+				>
+				["at0004"] = <
+					text = <"TASK_PARTICIPATION">
+					description = <"*">
+				>
+				["at0005"] = <
+					text = <"DV_CODED_TEXT">
+					description = <"*">
+				>
+				["at0006"] = <
+					text = <"Nurse">
+					description = <"Nurse at outpatient clinic">
+				>
+				["at0007"] = <
+					text = <"Optician">
+					description = <"Optician">
+				>
+				["at0008"] = <
+					text = <"Physician">
+					description = <"Physician may do the investigations himself">
+				>
+			>
+		>
+		["nb"] = <
+			items = <
+				["at0000"] = <
+					text = <"Forundersøkelser på poliklinikk">
+					description = <"Forundersøkelser på poliklinikk">
+				>
+				["at0001"] = <
+					text = <"Forundersøkelser">
+					description = <"*">
+				>
+				["at0002"] = <
+					text = <"Undersøkelser">
+					description = <"*">
+				>
+				["at0003"] = <
+					text = <"Registrere data">
+					description = <"*">
+				>
+				["at0004"] = <
+					text = <"Oppgavedeltakelse">
+					description = <"*">
+				>
+				["at0005"] = <
+					text = <"Kodet tekst">
+					description = <"*">
+				>
+				["at0006"] = <
+					text = <"Sykepleier">
+					description = <"Sykepleier ved poliklinikken">
+				>
+				["at0007"] = <
+					text = <"Optiker">
+					description = <"Optiker">
+				>
+				["at0008"] = <
+					text = <"Lege">
+					description = <"Lege kan også gjøre forundersøkelser">
+				>
+			>
+		>
+	>

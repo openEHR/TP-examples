@@ -1,0 +1,171 @@
+:task_plan: http://www.openehr.org/releases/PROC/latest/task_planning.html#_task_plan_class[TASK_PLAN]
+:work_plan: http://www.openehr.org/releases/PROC/latest/task_planning.html#_work_plan_class[WORK_PLAN]
+:linked_plan: http://www.openehr.org/releases/PROC/latest/task_planning.html#_hand_off_class[LINKED_PLAN]
+:sub_plan: http://www.openehr.org/releases/PROC/latest/task_planning.html#_sub_plan_class[SUB_PLAN]
+:performable_task: http://www.openehr.org/releases/PROC/latest/task_planning.html#_performable_task_class[PERFORMABLE_TASK]
+:performable_action: http://www.openehr.org/releases/PROC/latest/task_planning.html#_performable_action_class[PERFORMABLE_ACTION]
+:dispatchable_action: http://www.openehr.org/releases/PROC/latest/task_planning.html#_dispatchable_action_class[DISPATCHABLE_ACTION]
+:hand_off: http://www.openehr.org/releases/PROC/latest/task_planning.html#_hand_off_class[HAND_OFF]
+= How to reference TASK_PLAN from WORK_PLAN 
+
+== STATUS 
+
+WARNING: *RESOLVED* - the RM was changed in v 1.3.0 at _04 Jan 2019_ Change WORK_PLAN.top_level_plans and LINKED_PLAN.target to direct links. See https://openehr.atlassian.net/browse/SPECPROC-16[SPECPROC-16]
+
+== Background 
+
+
+During the implementation of TaskPlanning both Marand and DIPS has faced some issues related to the correlation between a WORK_PLAN and its TASK_PLANs. The same pattern applies to LINKED_PLANS as well. 
+
+Here you will find a description of the use-cases and some possible solutions for this. 
+
+The intention of this note is to give a description of the problems to make the further communication about the topic easier and more precise. 
+
+== User stories
+
+=== UserStory-A
+____
+GIVEN that I am designing a WORK_PLAN archetype/template +
+THEN I want to control what kind of TASK_PLANs are allowed top_level_plans 
+AND also the cardinality on each type
+____
+
+
+
+
+
+=== UserStory-B
+____
+User A commits {task_plan} A in COMPOSITION A + 
+User B commits {task_plan} B in COMPOSITION B +
+User C creates {work_plan} W AND add A and B as top level plans in COMPOSITION C  
+____
+
+
+=== UserStory-C
+____
+Given a running WORK_PLAN `WP.A` in the engine + 
+Then a user SHOULD be able to add a TASK_PLAN `TP.T` to `WP.A`
+____
+
+
+
+
+
+== Discussion 
+Given the UserStory-B where we add TASK_PLAN as references, and combining it with UserStory-A we need a way to control what kind of data should got into the top_level_plans. 
+
+We need a way to put some constrains on the references to put inside the slot. 
+
+A way of thinking is the following where we express some constraints on the referenced data to put into the list. Here we say that 
+
+----
+top_level_plans with constraint: 
+
+type: UID_BASED_VALUE 
+which 
+[
+allow Archetype TASK_PLAN.my_first_taskplan.v1 1..1 , 
+allow Archetype TASK_PLAN.my_best_taskplan.v1 0..*
+]
+and the slot is open 
+----
+
+
+If we got this kind of structure to be able to constraint the content to be added/references by UIDS, then there where no need to change the RM as proposed below. Because everything would then be references and the archetype will define full controll of what to put into the "slot". 
+
+
+
+
+== LINKED_PLAN
+There is two kind of {linked_plan}s, {hand_off} and {sub_plan}. Currently they references other TASK_PLAN by the attribute _target_ on LINKED_PLAN. The attribute is mandatory. 
+
+For these structures we have the same problems as with {work_plan}.top_level_plans. The only difference is that there have to be one and only one reference. 
+
+For archetype/template design we need control over the runtime references (or embedded) {task_plan}s. The quickest and easiest way to offer this is to embed the TASK_PLAN. Then the designer may directly controll the archetyped constraints. 
+
+But this is not possible for HAND_OFF. HAND_OFF is by nature a reference to a TASK_PLAN outside the "current TASK_PLAN". 
+
+There might be several ways to implement this: 
+
+=== Alternative 1 
+
+Let {sub_plan} inherit from {performable_action} and {task_plan}. This makes it possible to _embed_ a task plan inside a {performable_task}
+
+.RM changes in Alternative 1
+[cols="5,5,20"]
+|====
+3+^h| SUB_PLAN (_abstract_)
+h|Inherit 2+|  {performable_action}, {task_plan}
+
+|====
+
+
+=== Alternative 2 
+Remove `target` attribute of {linked_plan}. Introduce a new hierarchy of {sub_plan}s.
+
+.RM changes in Alternative 2
+[cols="5,5,20"]
+|====
+3+^h| SUB_PLAN (_abstract_)
+h|Inherit 2+|  {performable_action}
+
+
+
+h|Attributes  {set:cellbgcolor:lightblue} h| Signature {set:cellbgcolor:lightblue} h| Meaning {set:cellbgcolor:lightblue}
+
+3+|{set:cellbgcolor!}
+
+3+^h| LINKED_SUB_PLAN (NEW)
+|Inherit 2+| SUB_PLAN
+
+h|Attributes  {set:cellbgcolor:lightblue} h| Signature {set:cellbgcolor:lightblue} h| Meaning {set:cellbgcolor:lightblue}
+3+|{set:cellbgcolor!}
+
+^|1..1| target: `UID_BASED_ID` | The referenced/linked {task_plan}
+
+
+3+^h| EMBEDDED_SUB_PLAN (NEW)
+|Inherit 2+| SUB_PLAN
+
+h|Attributes  {set:cellbgcolor:lightblue} h| Signature {set:cellbgcolor:lightblue} h| Meaning {set:cellbgcolor:lightblue}
+3+|{set:cellbgcolor!}
+
+^|1..1 a| target: `TASK_PLAN` | The embedded {task_plan} to be executed when engine gets to this task.
+
+
+|====
+
+=== Alternative 3 
+If it was possible to define constraints on what to add in a LIST<UID>. Then there where no need to change the RM. Then the designer and designer application were able to define what to add. Be able to constraint what to put into the slot. This would be useful both for client application and for the backend to validate data. 
+
+== Changes in RM 
+Below is a table with the proposed changes to the RM. 
+
+NOTE: If we got a way to handle constraints on UIDS as defined above, then there was no need to change the RM. 
+
+|====
+4+h|SUB_PLAN
+
+h|Card h|Name h| Prev h| New
+|0..1|top_level_plans | `List<UID_BASED_ID>` | The same
+|0..1|top_level_embedded_plans | N/A | `List<TASK_PLAN>`
+|0..1|plans | `List<UID_BASED_ID>` | REMOVED
+
+4+h| SUB_PLAN
+h|Card h|Name h| Prev h| New
+|1..1 | target | `UID_BASED_ID` | CHOICHE (`TASK_PLAN`, `UID_BASED_ID`)
+|====
+
+
+Below is a mock structure of a WORK_PLAN covering the proposed changes
+
+
+.WP-1 
+.....
+top_level_plans: A, B 
+top_level_embedded_plans: X 
+sub_plan S1.target references C 
+sub_plan S2.target embedded D
+hand_off H1.target references E 
+.....

@@ -1,5 +1,20 @@
-= External worktask 
+:imagesdir: images
 
-== Background 
-This is a technical example written to explore how to invoke an external service. The external service is DIPS Arena Worktasks. 
+= External request
+
+== Drawings
+
+.Statediagram as presented from customer
+image::request_radiology-statediagram.svg[]
+
+.Workplan modelled to cover statediagram above 
+image::request_radiology-2_workplans.svg[]
+
+== Background
+.Transformation from CAREFLOW_STEP into Taskplan
+image::request_radiology-cf_step_system_event.svg[]
+
+.How notifications from RAD system is transformed into lifecycle state of the EXTERNAL_REQUEST 
+image::request_radiology-tp_overview.svg[]
+
 

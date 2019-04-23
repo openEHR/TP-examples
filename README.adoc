@@ -9,6 +9,11 @@ This repository contains examples and test cases for the Task Planning specifica
 * 12 - Infection monitoring after surgery
 * 13 - Stroke management at ward 
 * 14 - External worktasks
+* 15 - Outpatient 
 
 == Issues 
-The issues.adoc contains some issues, questions and topics to be discussed.
+A few issue pages have been added: 
+
+* issues.adoc
+* issues_callback.adoc
+* issues_datatypes.adoc
